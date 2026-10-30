@@ -1,0 +1,56 @@
+schema_version: 1
+recorded_at: '2026-10-29'
+interpretation: organic photovoltaics / organic solar cells
+scope: OpenAlex title, abstract, and indexed keywords
+restrictions:
+  years: null
+  languages: null
+  work_types: null
+  open_access: null
+  fulltext_required: false
+search_parameter: search.title_abstract_keywords.exact
+selected_inventory: expanded_union
+queries:
+- id: organic_photovoltaics
+  query: '"organic photovoltaic*"'
+- id: organic_solar_cells
+  query: '"organic solar cell*"'
+- id: polymer_solar_cells
+  query: '"polymer solar cell*"'
+- id: plastic_solar_cells
+  query: '"plastic solar cell*"'
+- id: opv_in_solar_context
+  query: (OPV OR OPVs) AND (photovoltaic OR photovoltaics OR "solar cell" OR "solar
+    cells")
+- id: core_union
+  query: ("organic photovoltaic" OR "organic photovoltaics" OR "organic solar cell"
+    OR "organic solar cells" OR "polymer solar cell" OR "polymer solar cells" OR "plastic
+    solar cell" OR "plastic solar cells" OR ((OPV OR OPVs) AND (photovoltaic OR photovoltaics
+    OR "solar cell" OR "solar cells")))
+- id: broad_union
+  query: ((organic AND (photovoltaic OR photovoltaics OR "solar cell" OR "solar cells"))
+    OR "polymer solar cell" OR "polymer solar cells" OR "plastic solar cell" OR "plastic
+    solar cells" OR ((OPV OR OPVs) AND (photovoltaic OR photovoltaics OR "solar cell"
+    OR "solar cells")))
+- id: expanded_union
+  query: ((organic AND (photovoltaic OR photovoltaics OR "solar cell" OR "solar cells"))
+    OR "polymer solar cell" OR "polymer solar cells" OR "polymer photovoltaic" OR
+    "polymer photovoltaics" OR "plastic solar cell" OR "plastic solar cells" OR "plastic
+    photovoltaic" OR "plastic photovoltaics" OR ((OPV OR OPVs OR "organic PV") AND
+    (solar OR photovoltaic OR photovoltaics)))
+coverage_notes:
+- This is an explicit lexical candidate corpus, not proof that every relevant paper
+  worldwide is indexed or matches.
+- The broad query deliberately retains possible organic-inorganic or perovskite false
+  positives for review.
+- OPV without photovoltaic or solar-cell context is not queried because it also means
+  oral polio vaccine.
+- Exact search is required for wildcard syntax; no semantic search or reranking is
+  used.
+- Cursor authentication and rate limits are not bypassed by date or identifier partitioning.
+- The live API rejects wildcard phrases nested in Boolean expressions; union queries
+  spell out singular/plural forms and the rejection is preserved as evidence.
+official_sources:
+- https://help.openalex.org/api/searching/
+- https://help.openalex.org/api/authentication/
+- https://help.openalex.org/api/paging/

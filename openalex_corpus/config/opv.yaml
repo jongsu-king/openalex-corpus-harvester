@@ -1,0 +1,33 @@
+data_dir: data/opv
+log_dir: logs/opv
+max_works: 10000
+retry_max_attempts: 3
+api:
+  requests_per_second: 0.7
+  daily_request_budget: 1000
+  daily_budget_usd: 0.05
+download:
+  concurrency: 2
+  max_downloads: 100
+  max_file_bytes: 104857600
+  max_content_downloads: 0
+  max_content_cost_usd: 0
+parsing:
+  primary_engine: docling
+  enable_docling: true
+  docling_artifacts_path: data/models/docling
+  allow_model_downloads: false
+  enable_ocr: true
+  grobid_url: http://127.0.0.1:8070
+  grobid_timeout: 180
+  workers: 1
+  worker_memory_mb: 3072
+  memory_limit_mb: 4096
+search:
+  query: ((organic AND (photovoltaic OR photovoltaics OR "solar cell" OR "solar cells"))
+    OR "polymer solar cell" OR "polymer solar cells" OR "polymer photovoltaic" OR
+    "polymer photovoltaics" OR "plastic solar cell" OR "plastic solar cells" OR "plastic
+    photovoltaic" OR "plastic photovoltaics" OR ((OPV OR OPVs OR "organic PV") AND
+    (solar OR photovoltaic OR photovoltaics)))
+  scope: title_abstract_keywords
+  exact: true

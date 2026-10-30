@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">OpenAlex Corpus Harvester — 원본 보존과 검증 흐름</title>
+<desc id="desc">검색 및 예산 제어, 원본 보존, 다중 파서 추출, 검증 및 저장의 네 단계. 모든 단계에서 출처와 불변 이력을 남기고 중단된 작업은 체크포인트에서 재개합니다. COMPLETE는 자동 검사 통과이며 원문 전체의 의미적 복원을 보장하지 않습니다.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#60758a"/></marker></defs>
+<rect width="1600" height="1000" rx="24" fill="#f3f6fa"/>
+<g font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
+<text x="60" y="65" font-size="19" fill="#25735e" font-weight="700">OPENALEX CORPUS HARVESTER</text>
+<text x="60" y="122" font-size="40" fill="#142d43" font-weight="700">원본을 보존하고, 결과의 근거를 추적한다</text>
+<text x="60" y="161" font-size="23" fill="#34475c" font-weight="400">검색 → 수집 → 추출 → 검증   ·   추측으로 빈칸을 채우지 않는 과학 문헌 파이프라인</text>
+<rect x="60" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<rect x="80" y="235" width="54" height="40" rx="10" fill="#e9f2fc" stroke="none"/>
+<text x="92" y="263" font-size="23" fill="#2064a5" font-weight="700">01</text>
+<text x="80" y="318" font-size="29" fill="#142d43" font-weight="700">목록 수집</text>
+<text x="80" y="361" font-size="21" fill="#34475c" font-weight="400">OpenAlex / SearchSpec</text>
+<text x="80" y="394" font-size="21" fill="#34475c" font-weight="400">범위·필터·검색식을 고정</text>
+<text x="80" y="427" font-size="21" fill="#34475c" font-weight="400">전송 전에 예산을 예약</text>
+<text x="80" y="460" font-size="21" fill="#34475c" font-weight="400">원본 응답·cursor·offset 저장</text>
+<text x="80" y="493" font-size="21" fill="#34475c" font-weight="400">Work ID로 중복 처리 방지</text>
+<rect x="74" y="523" width="312" height="32" rx="8" fill="#e9f2fc" stroke="none"/>
+<text x="83" y="545" font-size="17" fill="#2064a5" font-weight="600">인증·한도 도달 시 일시정지</text>
+<rect x="440" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<rect x="460" y="235" width="54" height="40" rx="10" fill="#e9f5ef" stroke="none"/>
+<text x="472" y="263" font-size="23" fill="#21755d" font-weight="700">02</text>
+<text x="460" y="318" font-size="29" fill="#142d43" font-weight="700">원본 보존</text>
+<text x="460" y="361" font-size="21" fill="#34475c" font-weight="400">JSON 전체 필드 + SHA-256</text>
+<text x="460" y="394" font-size="21" fill="#34475c" font-weight="400">첫 정상 original.pdf 보존</text>
+<text x="460" y="427" font-size="21" fill="#34475c" font-weight="400">다른 PDF는 버전으로 분리</text>
+<text x="460" y="460" font-size="21" fill="#34475c" font-weight="400">.part 검증 후 원자 이동</text>
+<text x="460" y="493" font-size="21" fill="#34475c" font-weight="400">출처·시각·license를 기록</text>
+<rect x="454" y="523" width="312" height="32" rx="8" fill="#e9f5ef" stroke="none"/>
+<text x="463" y="545" font-size="17" fill="#21755d" font-weight="600">원본과 파생 결과를 분리</text>
+<rect x="820" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<rect x="840" y="235" width="54" height="40" rx="10" fill="#fff4df" stroke="none"/>
+<text x="852" y="263" font-size="23" fill="#886221" font-weight="700">03</text>
+<text x="840" y="318" font-size="29" fill="#142d43" font-weight="700">독립 추출</text>
+<text x="840" y="361" font-size="21" fill="#34475c" font-weight="400">Docling — 문서 구조 후보</text>
+<text x="840" y="394" font-size="21" fill="#34475c" font-weight="400">PyMuPDF — 텍스트·좌표</text>
+<text x="840" y="427" font-size="21" fill="#34475c" font-weight="400">pdfplumber — 표 교차 검증</text>
+<text x="840" y="460" font-size="21" fill="#34475c" font-weight="400">GROBID — 학술 구조·TEI</text>
+<text x="840" y="493" font-size="21" fill="#34475c" font-weight="400">OCR — 필요한 스캔 페이지</text>
+<rect x="834" y="523" width="312" height="32" rx="8" fill="#fff4df" stroke="none"/>
+<text x="843" y="545" font-size="17" fill="#886221" font-weight="600">원시 후보와 불일치를 함께 보존</text>
+<rect x="1200" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<rect x="1220" y="235" width="54" height="40" rx="10" fill="#f2ebf8" stroke="none"/>
+<text x="1232" y="263" font-size="23" fill="#755294" font-weight="700">04</text>
+<text x="1220" y="318" font-size="29" fill="#142d43" font-weight="700">검증 · 저장</text>
+<text x="1220" y="361" font-size="21" fill="#34475c" font-weight="400">전체 페이지·파일 해시 확인</text>
+<text x="1220" y="394" font-size="21" fill="#34475c" font-weight="400">누락·불일치·결측 이유 기록</text>
+<text x="1220" y="427" font-size="21" fill="#34475c" font-weight="400">SQLite + 불변 extraction run</text>
+<text x="1220" y="460" font-size="21" fill="#34475c" font-weight="400">Markdown / JSON / 표·그림</text>
+<text x="1220" y="493" font-size="21" fill="#34475c" font-weight="400">검토가 남으면 PARTIAL 유지</text>
+<rect x="1214" y="523" width="312" height="32" rx="8" fill="#f2ebf8" stroke="none"/>
+<text x="1223" y="545" font-size="17" fill="#755294" font-weight="600">자동 검사와 의미적 정확성을 구분</text>
+<path d="M406 396 L432 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M786 396 L812 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M1166 396 L1192 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="60" y="610" width="1480" height="94" rx="20" fill="#153c52" stroke="none"/>
+<text x="85" y="648" font-size="23" fill="#a9e2d3" font-weight="700">모든 단계의 공통 원칙</text>
+<text x="85" y="683" font-size="24" fill="#ffffff" font-weight="400">source · missing_reason · retrieval_status · validation_status  /  원본 이력 유지  /  실패를 숨기지 않음</text>
+<path d="M230 576 L230 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M610 576 L610 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M990 576 L990 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M1370 576 L1370 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="60" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<text x="82" y="786" font-size="25" fill="#21755d" font-weight="700">자동 검사 통과</text>
+<text x="82" y="824" font-size="20" fill="#34475c" font-weight="400">COMPLETE / COMPLETE_WITH_WARNINGS</text>
+<text x="82" y="855" font-size="20" fill="#34475c" font-weight="400">정의된 페이지·파일·품질 검사 결과</text>
+<text x="82" y="886" font-size="20" fill="#34475c" font-weight="400">원문 의미 전체의 복원 인증은 아님</text>
+<rect x="565" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<text x="587" y="786" font-size="25" fill="#886221" font-weight="700">검토할 근거가 남음</text>
+<text x="587" y="824" font-size="20" fill="#34475c" font-weight="400">PARTIAL / FAILED / PDF_UNAVAILABLE</text>
+<text x="587" y="855" font-size="20" fill="#34475c" font-weight="400">수식·표·OCR·다운로드 원인을 분리</text>
+<text x="587" y="886" font-size="20" fill="#34475c" font-weight="400">메타데이터만 수집한 문헌도 구분</text>
+<rect x="1070" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
+<text x="1092" y="786" font-size="25" fill="#2064a5" font-weight="700">중단 이후에도 재개</text>
+<text x="1092" y="824" font-size="20" fill="#34475c" font-weight="400">cursor + offset / bounded retry</text>
+<text x="1092" y="855" font-size="20" fill="#34475c" font-weight="400">파일 승격과 DB commit 사이를 복구</text>
+<text x="1092" y="886" font-size="20" fill="#34475c" font-weight="400">이전 정상 추출을 실패로 덮어쓰지 않음</text>
+<text x="60" y="966" font-size="21" fill="#34475c" font-weight="400">구현·예외·상태 전이의 상세 근거: docs/ARCHITECTURE.md  ·  그림 재생성: python scripts/render_architecture.py</text>
+</g>
+</svg>

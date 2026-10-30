@@ -1,0 +1,29 @@
+# GROBID and selective OCR, installed and verified in this workspace.
+# Start the service first: .venv/bin/python scripts/grobid_service.py start
+data_dir: data
+log_dir: logs
+max_works: 100
+api:
+  daily_request_budget: 1000
+  daily_budget_usd: 0.05
+download:
+  concurrency: 2
+  max_downloads: 100
+  max_content_downloads: 0
+  max_content_cost_usd: 0
+parsing:
+  primary_engine: docling
+  enable_docling: true
+  docling_artifacts_path: data/models/docling
+  allow_model_downloads: false
+  enable_ocr: true
+  grobid_url: http://127.0.0.1:8070
+  grobid_timeout: 180
+  ocr_timeout: 300
+  workers: 1
+  worker_memory_mb: 3072
+  memory_limit_mb: 4096
+  docling_threads: 2
+  timeout_seconds: 600
+  max_recovery_attempts: 0
+search: {}

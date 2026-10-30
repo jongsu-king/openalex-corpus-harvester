@@ -1,0 +1,23 @@
+# Deliberately small validation run; use the locally prepared model cache.
+# OpenAlex content downloads remain disabled.
+data_dir: data
+log_dir: logs
+max_works: 2
+api:
+  daily_request_budget: 20
+  daily_budget_usd: 0.01
+download:
+  max_downloads: 2
+  concurrency: 1
+  max_content_downloads: 0
+  max_content_cost_usd: 0
+parsing:
+  allow_model_downloads: false
+  docling_artifacts_path: data/models/docling
+  workers: 1
+  worker_memory_mb: 3072
+  memory_limit_mb: 4096
+  max_recovery_attempts: 0
+  timeout_seconds: 600
+  docling_timeout: 300
+  docling_threads: 2

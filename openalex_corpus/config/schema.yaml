@@ -1,0 +1,263 @@
+$defs:
+  APISettings:
+    additionalProperties: false
+    properties:
+      base_url:
+        default: https://api.openalex.org
+        title: Base Url
+        type: string
+      timeout:
+        default: 45
+        exclusiveMinimum: 0
+        title: Timeout
+        type: number
+      max_attempts:
+        default: 4
+        maximum: 10
+        minimum: 1
+        title: Max Attempts
+        type: integer
+      requests_per_second:
+        default: 2
+        exclusiveMinimum: 0
+        maximum: 30
+        title: Requests Per Second
+        type: number
+      daily_request_budget:
+        default: 1000
+        minimum: 0
+        title: Daily Request Budget
+        type: integer
+      daily_budget_usd:
+        default: 0.05
+        minimum: 0
+        title: Daily Budget Usd
+        type: number
+      estimated_list_cost_usd:
+        default: 0.0001
+        minimum: 0
+        title: Estimated List Cost Usd
+        type: number
+      estimated_search_cost_usd:
+        default: 0.001
+        minimum: 0
+        title: Estimated Search Cost Usd
+        type: number
+      max_retry_after_seconds:
+        default: 30
+        maximum: 60
+        minimum: 0
+        title: Max Retry After Seconds
+        type: number
+    title: APISettings
+    type: object
+  DownloadSettings:
+    additionalProperties: false
+    properties:
+      refresh_existing:
+        default: false
+        title: Refresh Existing
+        type: boolean
+      timeout:
+        default: 60
+        exclusiveMinimum: 0
+        title: Timeout
+        type: number
+      max_attempts:
+        default: 3
+        maximum: 10
+        minimum: 1
+        title: Max Attempts
+        type: integer
+      concurrency:
+        default: 3
+        maximum: 16
+        minimum: 1
+        title: Concurrency
+        type: integer
+      max_downloads:
+        default: 100
+        minimum: 0
+        title: Max Downloads
+        type: integer
+      max_file_bytes:
+        default: 104857600
+        minimum: 1024
+        title: Max File Bytes
+        type: integer
+      max_content_downloads:
+        default: 0
+        minimum: 0
+        title: Max Content Downloads
+        type: integer
+      max_content_cost_usd:
+        default: 0
+        minimum: 0
+        title: Max Content Cost Usd
+        type: number
+      content_cost_usd:
+        default: 0.01
+        exclusiveMinimum: 0
+        title: Content Cost Usd
+        type: number
+      allowed_licenses:
+        anyOf:
+        - items:
+            type: string
+          type: array
+        - type: 'null'
+        default: null
+        title: Allowed Licenses
+      user_agent:
+        default: OpenAlexCorpusHarvester/0.1 (local scholarly archiver)
+        title: User Agent
+        type: string
+      max_retry_after_seconds:
+        default: 30
+        maximum: 60
+        minimum: 0
+        title: Max Retry After Seconds
+        type: number
+    title: DownloadSettings
+    type: object
+  ParsingSettings:
+    additionalProperties: false
+    properties:
+      primary_engine:
+        default: docling
+        enum:
+        - docling
+        - pymupdf
+        title: Primary Engine
+        type: string
+      enable_docling:
+        default: true
+        title: Enable Docling
+        type: boolean
+      enable_ocr:
+        default: false
+        title: Enable Ocr
+        type: boolean
+      grobid_url:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Grobid Url
+      grobid_timeout:
+        default: 120
+        exclusiveMinimum: 0
+        title: Grobid Timeout
+        type: number
+      ocr_timeout:
+        default: 300
+        exclusiveMinimum: 0
+        title: Ocr Timeout
+        type: number
+      render_dpi:
+        default: 110
+        maximum: 300
+        minimum: 50
+        title: Render Dpi
+        type: integer
+      text_min_chars:
+        default: 20
+        minimum: 0
+        title: Text Min Chars
+        type: integer
+      docling_artifacts_path:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Docling Artifacts Path
+      allow_model_downloads:
+        default: false
+        title: Allow Model Downloads
+        type: boolean
+      tei_path:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Tei Path
+      docling_timeout:
+        default: 300
+        exclusiveMinimum: 0
+        title: Docling Timeout
+        type: number
+      docling_threads:
+        default: 2
+        maximum: 16
+        minimum: 1
+        title: Docling Threads
+        type: integer
+      workers:
+        default: 1
+        maximum: 8
+        minimum: 1
+        title: Workers
+        type: integer
+      memory_limit_mb:
+        default: 4096
+        minimum: 256
+        title: Memory Limit Mb
+        type: integer
+      worker_memory_mb:
+        default: 2048
+        minimum: 128
+        title: Worker Memory Mb
+        type: integer
+      timeout_seconds:
+        default: 600
+        exclusiveMinimum: 0
+        title: Timeout Seconds
+        type: number
+      max_recovery_attempts:
+        default: 2
+        maximum: 5
+        minimum: 0
+        title: Max Recovery Attempts
+        type: integer
+      render_all_pages:
+        default: true
+        title: Render All Pages
+        type: boolean
+    title: ParsingSettings
+    type: object
+additionalProperties: false
+properties:
+  data_dir:
+    default: data
+    format: path
+    title: Data Dir
+    type: string
+  log_dir:
+    default: logs
+    format: path
+    title: Log Dir
+    type: string
+  api:
+    $ref: '#/$defs/APISettings'
+  download:
+    $ref: '#/$defs/DownloadSettings'
+  parsing:
+    $ref: '#/$defs/ParsingSettings'
+  search:
+    additionalProperties: true
+    title: Search
+    type: object
+  max_works:
+    default: 100
+    maximum: 10000
+    minimum: 1
+    title: Max Works
+    type: integer
+  retry_max_attempts:
+    default: 3
+    maximum: 10
+    minimum: 1
+    title: Retry Max Attempts
+    type: integer
+title: Settings
+type: object
