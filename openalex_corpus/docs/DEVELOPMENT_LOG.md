@@ -4,7 +4,11 @@ This record covers the initial implementation and optional-engine work on **Octo
 
 The October 30 documentation work used existing source files and run evidence. It did not restart OPV collection or query OpenAlex. The first publication is recorded in section 10.
 
-For operation, see the [README](../README.md). Supporting documents include the [pipeline overview](diagrams/pipeline-overview.svg), [initial validation](VALIDATION.md), [GROBID/OCR validation](ENHANCED_VALIDATION.md), and [test matrix](TEST_MATRIX.md).
+For operation, see the [README](../README.md). Supporting documents include the
+[architecture](ARCHITECTURE.md), [pipeline walkthrough](PIPELINE_WALKTHROUGH.md),
+[initial validation](VALIDATION.md), [GROBID/OCR validation](ENHANCED_VALIDATION.md),
+and [test matrix](TEST_MATRIX.md). Sections 10 and 11 describe earlier diagram
+versions; section 12 records their replacement with text schematics.
 
 ## 1. Scope
 
@@ -12,12 +16,12 @@ The project implements an installable Python 3.11+ corpus pipeline:
 
 ```text
 Search OpenAlex and preserve raw responses
-  → identify works and normalize metadata
-  → find, download, and validate accessible PDFs
-  → extract structure, text, tables, figures, equations, and references
-  → check page coverage, source regions, and file integrity
-  → store Markdown, JSON, and relational records
-  → recover, reparse, collect incrementally, and export
+  -> identify works and normalize metadata
+  -> find, download, and validate accessible PDFs
+  -> extract structure, text, tables, figures, equations, and references
+  -> check page coverage, source regions, and file integrity
+  -> store Markdown, JSON, and relational records
+  -> recover, reparse, collect incrementally, and export
 ```
 
 Summarization, LLM reconstruction, research evaluation, recommendations, embeddings, RAG, and a web UI were outside the implementation scope. Missing or uncertain content is represented by source records, candidates, original regions, and explicit reasons. Download success, parser completion, automatic quality checks, and content accuracy are tracked separately.
@@ -39,6 +43,7 @@ Summarization, LLM reconstruction, research evaluation, recommendations, embeddi
 | October 30, documentation | Development record, portable installation instructions, document navigation, and diagrams added; publishable files separated from local run data | Repository documentation, `.gitignore`, SVG overview |
 | October 30, pre-publication checks | 130 passed, 5 skipped; Ruff, sdist, and wheel builds passed; SVG rendered at 1600×1000 and inspected | `data/validation/docs/pytest_pre_push.txt`, `data/validation/docs/pipeline-overview.png` |
 | October 30, detailed diagrams | Five Mermaid diagrams parsed, rendered, and visually inspected with Mermaid 11.17.2; internal file links checked across 13 Markdown documents | `data/validation/docs/mermaid_validation.json`, `architecture-1.png`–`architecture-5.png` |
+| October 30, text pipeline revision | Replaced documentation graphics with ASCII execution and storage schematics; expanded source-level contracts and added an invocation walkthrough | Architecture, pipeline walkthrough, API, and database references; see section 12 |
 
 Approximate minute values come from `tested_at`, `recorded_at`, `checked_at`, or extraction-run names, converted to KST. Runs without detailed timestamps are listed by date only. Search totals below are the API's historical responses from October 29.
 
@@ -61,7 +66,7 @@ File names in this table are relative to `src/openalex_corpus/` unless they begi
 | Export | `export.py` | Supports JSON, JSONL, CSV, Parquet, Markdown, and SQLite; preserves nested metadata and protects corpus source paths. |
 | OPV collection | `opv.py`, `scripts/discover_opv.py`, `scripts/harvest_opv.py` | Separates query definition, first-page discovery, and resumable cursor collection; distinguishes metadata completion from PDF processing. |
 | Operations | `scripts/prepare_models.py`, `scripts/grobid_service.py`, `scripts/validate_ocr.py` | Provides explicit model preparation, local-service management, and live OCR validation commands. |
-| Documentation | `docs/DEVELOPMENT_LOG.md`, `docs/diagrams/pipeline-overview.svg`, `scripts/render_architecture.py` | Records decisions and evidence and provides a regenerable overview diagram. |
+| Documentation | `docs/ARCHITECTURE.md`, `docs/PIPELINE_WALKTHROUGH.md`, `docs/API.md`, `docs/DATABASE.md`, `docs/DEVELOPMENT_LOG.md` | Documents execution and storage contracts with editable text schematics and records measured results. |
 
 ### Tested environment
 
@@ -221,7 +226,7 @@ The general CLI reads `OPENALEX_API_KEY` from the environment. The OPV script re
 
 ## 8. Repository contents and local evidence
 
-The repository contains code, settings, dependency locks, tests, operational scripts, documentation, and diagrams. `.gitignore` excludes `data/`, `logs/`, `.venv/`, `.env`, caches, and build output. Raw API responses, PDFs, databases, OCR inputs/derivatives, downloaded models, built services, and credentials remain local.
+The repository contains code, settings, dependency locks, tests, operational scripts, and documentation with text schematics. `.gitignore` excludes `data/`, `logs/`, `.venv/`, `.env`, caches, and build output. Raw API responses, PDFs, databases, OCR inputs/derivatives, downloaded models, built services, and credentials remain local.
 
 The following paths identify local evidence and are not repository links.
 
@@ -274,6 +279,47 @@ Repository publication left the recorded collection and extraction state unchang
 
 ## 11. English documentation and diagrams — October 30, 2026
 
-The README, architecture reference, parser runbooks, OPV notes, and validation records were rewritten in English. The overview now shows Python modules, function calls, the worker boundary, and persisted files. Its SVG source is generated by `scripts/render_architecture.py`; the detailed diagrams remain Mermaid source in `ARCHITECTURE.md`.
+The README, architecture reference, parser runbooks, OPV notes, and validation records were rewritten in English. At that revision, the overview showed Python modules, function calls, the worker boundary, and persisted files. The SVG was generated by `scripts/render_architecture.py`, and the detailed diagrams were Mermaid source in `ARCHITECTURE.md`. Section 12 supersedes that presentation; the earlier assets remain in Git history.
 
 The five revised Mermaid diagrams passed parsing and rendering with Mermaid 11.17.2. The SVG rendered at 1680 × 1120 with no text outside the canvas. All local links and fenced code blocks across 13 Markdown files were checked, and Ruff and Git whitespace checks passed. The application code and stored corpus were not changed by this documentation revision.
+
+## 12. Detailed text pipelines — October 30, 2026
+
+The documentation now uses fixed-width ASCII schematics in Markdown `text`
+blocks. The SVG overview, its renderer script, and embedded Mermaid diagrams
+were removed from the current tree. Paper extraction still retains source
+figures, equation crops, and page images; this revision changes documentation
+presentation only.
+
+The source review expanded four references:
+
+| Reference | Detail added |
+| --- | --- |
+| [Architecture](ARCHITECTURE.md) | Numbered stage contracts, actual module calls, parser ordering, resource limits, write boundaries, failure branches, and recovery behavior |
+| [Pipeline walkthrough](PIPELINE_WALKTHROUGH.md) | A command traced from configuration to final status; an illustrative two-page cursor sequence; mid-batch replay and interruption cases |
+| [API](API.md) | Reservation before each request, counter lifetimes, HTTP classification, candidate priority, cache validation, redirect authentication, Range transfer, and PDF publication |
+| [Database](DATABASE.md) | Primary/foreign keys, nullable fields, current projections versus retained history, canonical versus file hashes, transaction boundaries, retry state, and inspection SQL |
+
+The walkthrough separates processed response entries from distinct Work IDs.
+Its invented 200-record example uses 100-result pages, batches of three, and
+30-record invocation caps. The fourth invocation consumes the last ten records
+of page one and the first twenty of page two. This trace explains offset reuse;
+it is not a new OPV collection measurement.
+
+The persistence notes distinguish a completed filesystem rename from database
+registration and from publication through `current.json`. They also document
+limits found during source review: SQL does not enforce historical immutability
+with triggers; reconciliation cannot rebuild every artifact registration;
+and a page retained before its receipt can lack a trusted checksum if its
+checkpoint does not yet contain one. These are descriptions of current behavior,
+not implementation fixes.
+
+Validation passed across 14 Markdown files: 122 relative links/anchors and 36
+ASCII text schematics, each no wider than 100 columns. No image embeds or Mermaid
+blocks remain. Ten database inspection queries and the walkthrough's inspection
+SQL ran against an in-memory database created from the actual migration. Ruff
+and Git whitespace checks passed. Local evidence is saved in
+`data/validation/docs/text_documentation_validation.json`.
+
+The application and its tests were not changed; the 130-pass regression result
+above remains the prior measured run.

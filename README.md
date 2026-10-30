@@ -4,7 +4,62 @@ A Python CLI for collecting OpenAlex records and extracting scientific PDFs into
 
 The application lives in [`openalex_corpus/`](openalex_corpus/).
 
-![Module and storage layout](openalex_corpus/docs/diagrams/pipeline-overview.svg)
+## Execution pipeline
+
+```text
+CLI arguments + config.yaml + OPENALEX_API_KEY
+  |
+  +--> validate settings and SearchSpec; acquire the corpus writer lock
+  |
+  v
+Pipeline.harvest(): find an unfinished crawl or create a crawl record
+  |
+  +--> retained page exists? -- yes --> check known checksum; resume at page_offset
+  |                         |
+  |                         no
+  |                         v
+  |    OpenAlexClient.get_page(): local checks -> reserve budget -> throttle -> GET
+  |      -> validate response -> save complete parsed page JSON + receipt
+  |
+  v
+Process the next batch of Work records (up to download.concurrency)
+  |
+  +--> ingest(raw): preserve metadata history -> commit normalized SQL rows
+  |                 -> publish metadata_raw.json and metadata.json
+  |
+  +--> PDF requested? -- no --> retain metadata and return the work status
+  |                   |
+  |                   yes
+  |                   v
+  |    PDFDownloader: validate cached version or try ordered source URLs
+  |      -> stream .part -> validate PDF -> publish pdf_versions/<sha256>.pdf
+  |      -> keep first original.pdf; record retrieval evidence
+  |        |
+  |        +--> no valid PDF: record failure; queue retry when applicable
+  |        |
+  |        +--> parse requested? -- no --> retain the PDF and metadata
+  |                             |
+  |                             yes
+  |                             v
+  |    parser child process -> extraction .staging-<run>/
+  |      PyMuPDF page evidence / optional OCR / Docling / optional GROBID
+  |      -> table, figure, equation and reference candidates
+  |      -> quality checks -> hashed manifest -> final extractions/<run>/
+  |      -> register SQL history -> select current.json when appropriate
+  |
+  v
+All batch outcomes returned -> record membership -> advance page_offset
+  |
+  +--> invocation limit / pause / interrupt: retain restart position
+  +--> page consumed: follow next_cursor, or mark crawl complete at its end
+
+Recovery: reconcile persistence -> retry failed work or reparse -> verify
+Exports:  selected metadata and retained artifacts -> JSONL/Parquet/etc.
+```
+
+Each arrow names an execution or persistence step; it does not imply one
+transaction across the filesystem and SQLite. The [walkthrough](openalex_corpus/docs/PIPELINE_WALKTHROUGH.md)
+follows the actual write order and explains what survives a stop at each boundary.
 
 ## Getting started
 
@@ -23,6 +78,9 @@ PDF parsing needs local model files. GROBID requires Java 21; OCR requires Tesse
 |---|---|
 | [CLI and setup](openalex_corpus/README.md) | Installation, queries, collection, retries, exports, and backups |
 | [Architecture](openalex_corpus/docs/ARCHITECTURE.md) | Module boundaries, cursor state, budget accounting, publication, and recovery |
+| [Pipeline walkthrough](openalex_corpus/docs/PIPELINE_WALKTHROUGH.md) | One command traced through requests, batches, parser workers, publication, and resume offsets |
+| [Database and storage contracts](openalex_corpus/docs/DATABASE.md) | Keys, relationships, transaction boundaries, artifact hashes, and inspection queries |
+| [API and download behavior](openalex_corpus/docs/API.md) | Request accounting, HTTP failures, candidate selection, range transfers, and refresh |
 | [Development log](openalex_corpus/docs/DEVELOPMENT_LOG.md) | Implementation decisions, regressions, validation runs, and open issues |
 | [Parser integration results](openalex_corpus/docs/ENHANCED_VALIDATION.md) | GROBID, OCR, and the retained PARTIAL result |
 | [OPV inventory](openalex_corpus/docs/OPV_SCOPE.md) | Query definition, saved coverage, and resume commands |

@@ -61,15 +61,15 @@ Set `docling_artifacts_path` to the **common parent** of the two model directori
 
 ```text
 data/models/docling/
-├── docling-project--docling-layout-heron/
-│   ├── config.json
-│   ├── model.safetensors
-│   └── preprocessor_config.json
-├── docling-project--docling-models/
-│   └── model_artifacts/tableformer/accurate/
-│       ├── tm_config.json
-│       └── tableformer_accurate.safetensors
-└── model_manifest.json
++-- docling-project--docling-layout-heron/
+|   +-- config.json
+|   +-- model.safetensors
+|   `-- preprocessor_config.json
++-- docling-project--docling-models/
+|   `-- model_artifacts/tableformer/accurate/
+|       +-- tm_config.json
+|       `-- tableformer_accurate.safetensors
+`-- model_manifest.json
 ```
 
 In the validation environment, these model directories are symlinks to existing Hugging Face snapshots. When moving the project to another machine, include the link targets or run the preparation script at the new location. Hugging Face normally caches files under `~/.cache/huggingface/hub`; Docling's downloader normally uses `~/.cache/docling/models`. Environment variables and library settings can change those defaults. This project reads from the path configured in YAML.

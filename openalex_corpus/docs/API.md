@@ -5,6 +5,16 @@ retry limits. Their shared on-disk budget journal is located at
 `data/state/network_budget.json` when used through the CLI. A separate lock file
 serializes reservations across processes using the same corpus directory.
 
+The paths below are relative to `src/openalex_corpus/`. Read
+[the walkthrough](PIPELINE_WALKTHROUGH.md) for the surrounding crawl and
+[the storage reference](DATABASE.md) for the resulting database records.
+
+- [Metadata request path](#metadata-request-path)
+- [Budget reservation and counter lifetimes](#budget-reservation-and-counter-lifetimes)
+- [HTTP response decisions](#http-response-decisions)
+- [PDF candidate and publication path](#pdf-candidate-and-publication-path)
+- [Interrupted transfer decisions](#interrupted-transfer-decisions)
+
 ## Official sources and date of verification
 
 The implementation was checked against the official documentation on
@@ -19,7 +29,7 @@ The implementation was checked against the official documentation on
 - [Snapshot acquisition](https://help.openalex.org/access/snapshot/)
 
 Older examples elsewhere can describe different credit prices and limits. This
-project uses the current help center and stores observed rate headers so future
+project used the help-center pages above and stores observed rate headers so future
 changes can be investigated. It does not assume a historic 100-request-per-second
 allowance.
 
@@ -82,6 +92,55 @@ Using publication dates and re-seeing known IDs on a free account can discover
 newly encountered work, but does not guarantee detection of every metadata
 update. The client does not silently replace an unavailable paid update filter
 with a weaker publication-date filter.
+
+## Metadata request path
+
+`api/search.py:SearchSpec.params()` constructs a request from validated options.
+`api/client.py:OpenAlexClient` performs HTTP operations; it does not write crawl
+pages or ingest works. Those persistence steps belong to `Pipeline.harvest()`.
+The sequence for a newly requested page is:
+
+```text
+SearchSpec.params()
+  |  query -> search[.<scope>][.exact]; allowed filters -> sorted filter string
+  v
+OpenAlexClient.get_page(params, cursor)
+  |-- no key and cursor != "*"? ----------> API_KEY_REQUIRED; no reservation
+  |-- params contain api_key or select? --> ValueError; no reservation
+  |-- force per_page=100 and the supplied cursor
+  |-- choose search estimate or list estimate
+  v
+_request("works", request, estimated_cost)
+  |
+  +--> retry loop, at most api.max_attempts
+         |-- BudgetJournal.reserve_metadata() -> durable reservation
+         |-- _throttle() -> spacing by requests_per_second
+         |-- request_count += 1
+         |-- HTTPX GET, with redirects disabled
+         |-- observe X-RateLimit-* headers before classifying HTTP status
+         |-- classify status / transport failure
+         |     `-- TransientAPIError -> bounded wait -> next reservation
+         `-- HTTP 200 -> decode JSON and require a JSON object
+  |
+  v
+get_page(): require results list, meta object, count and next_cursor keys
+  |          require each result to be an object with a nonempty id
+  v
+Pipeline.harvest(): save complete parsed page JSON and receipt
+  `-- process a batch -> checkpoint its offset and the retained page identity
+```
+
+The client chooses the search estimate when a request key begins with `search`
+or the filter contains `.search:`. A singleton `get_work()` instead normalizes
+the identifier and requests `works/<identifier>` with a zero monetary estimate.
+It still reserves one metadata request attempt and requires an ID in the result.
+
+The throttle uses a monotonic clock and an `asyncio.Lock` inside one client.
+The HTTPX metadata connection pool allows two connections, but that pool is not
+a cross-process rate limiter. The budget journal lock coordinates reservations
+for clients using the same state directory; it does not coordinate request
+spacing across unrelated clients. A retained crawl page is read locally on
+resume and needs neither a new metadata reservation nor a new GET.
 
 ## Monetary assumptions
 
@@ -148,6 +207,57 @@ A malformed journal fails closed. Changing `data_dir` creates a different local
 budget scope. A downloaded file's successful validation does not remove the
 reserved cost of any earlier failed attempt.
 
+## Budget reservation and counter lifetimes
+
+`BudgetJournal.transaction()` uses a separate `network_budget.lock` file. The
+lock covers reading, checking, and replacing the journal; it is released before
+the HTTP request. Money is calculated using `Decimal` and stored as strings.
+
+```text
+reserve_metadata(estimate, request_limit, cost_limit)
+  |
+  +--> flock(network_budget.lock, LOCK_EX)
+  +--> read network_budget.json, or initialize when absent
+  |      `-- unreadable JSON -> BUDGET_JOURNAL_INVALID; refuse network use
+  +--> UTC day changed? -> reset metadata counters and server block time
+  +--> blocked_until is in the future? -> reject reservation
+  +--> count >= request_limit? ---------> reject reservation
+  +--> reserved + estimate > cap? ------> reject reservation
+  +--> increment count; add estimate
+  +--> write PID-specific temporary file -> flush -> fsync -> os.replace
+  `--> unlock -> caller may throttle and send GET
+```
+
+| Journal field | Writer and meaning | Reset |
+| --- | --- | --- |
+| `day` | UTC date selected when a journal transaction opens | Updated on date change |
+| `metadata_requests` | Accepted metadata attempt reservations, including zero-cost singletons | UTC day change |
+| `metadata_reserved_usd` | Estimates plus positive observed cost adjustments | UTC day change |
+| `rate_headers` | Latest observed metadata `x-ratelimit-*` headers | Cleared on UTC day change |
+| `blocked_until` | Server-reported metadata allowance exhaustion | Cleared on UTC day change |
+| `content_requests` | Accepted GET reservations for `content.openalex.org` | No implicit reset |
+| `content_reserved_usd` | Cumulative configured content cost reservations | No implicit reset |
+| `rate_header_warning` | An observed rate value could not be interpreted | Not a budget override |
+
+A rejected reservation raises before the journal replacement and sends no GET.
+An accepted reservation survives a crash during the subsequent throttle or
+request. Therefore `metadata_requests` can exceed the number of requests that
+reached OpenAlex. The client's in-memory `request_count` increments after the
+throttle, immediately before GET; it is a different counter.
+
+For an illustrative search with a USD 0.001 estimate, one timeout followed by
+one successful retry reserves two requests and USD 0.002. A lower observed cost
+does not reduce that amount. If the second response reports USD 0.0015, the
+journal adds the USD 0.0005 difference, for USD 0.0025 in total. This example is
+accounting arithmetic, not an additional live API measurement.
+
+`observe_headers()` prefers direct USD cost, then falls back to reported credits
+times USD 0.0001. A nonpositive remaining allowance stores a reset time. Invalid
+numeric header values record `rate_header_warning`; configured limits remain in
+force. Header observation occurs even for a response that will subsequently
+raise an HTTP error. A successful HTTP 200 response can be returned while its
+headers block the *next* request.
+
 ## Retry and pause behavior
 
 HTTP 429, 5xx responses, connection errors, and timeouts use bounded retries with
@@ -164,6 +274,34 @@ no candidate succeeds. Each transfer is size-limited and first uses a `.part`
 file. Range resumption requires a prior ETag or Last-Modified validator and a
 matching Content-Range. A server that ignores the range triggers a safe restart.
 
+## HTTP response decisions
+
+The inner metadata retry loop catches `TransientAPIError` specifically. An error
+marked `retryable=True` can instead leave the loop with `retry_at`, allowing the
+crawl to persist a pause without holding the process in a long sleep.
+
+| Condition | Result from metadata client | Same-call retry |
+| --- | --- | --- |
+| Anonymous continuation cursor | `API_KEY_REQUIRED`, before `_request()` | No |
+| Local count/cost cap or active server block | `BUDGET_EXCEEDED`, with `retry_at` | No |
+| Timeout | `API_TIMEOUT` as `TransientAPIError` | Within attempt limit |
+| Network or remote protocol error | `API_CONNECTION_ERROR` as `TransientAPIError` | Within attempt limit |
+| HTTP 401 / 403 | `API_AUTH_ERROR` | No |
+| HTTP 404 | `API_NOT_FOUND` | No |
+| HTTP 429 / 5xx with exhausted allowance | `BUDGET_EXCEEDED` | No |
+| HTTP 429 / 5xx with excessive `Retry-After` | `RATE_LIMITED`, with `retry_at` | No |
+| Other HTTP 429 | `RATE_LIMITED` as `TransientAPIError` | Within attempt limit |
+| Other HTTP 5xx | `API_SERVER_ERROR` as `TransientAPIError` | Within attempt limit |
+| Other non-200 status, including a redirect | `API_HTTP_ERROR` | No |
+| Invalid JSON, non-object response, invalid page shape | `API_INVALID_RESPONSE` | No |
+
+The wait is the greater of the parsed `Retry-After` and exponential jitter
+(multiplier 0.5, jitter ceiling 15 seconds). Every retry re-enters the budget
+reservation step. The last transient exception escapes when attempts run out.
+Neither authentication errors nor malformed payloads become empty successful
+pages. Crawl-level handling, saved offsets, and command exit codes are documented
+in [the walkthrough](PIPELINE_WALKTHROUGH.md).
+
 ## PDF caching and explicit refresh
 
 By default, an existing manifest version is reused only after its bytes pass
@@ -179,6 +317,125 @@ size limit. When the same URL returns different bytes, both hashes remain in
 newest valid version. Equal bytes share the same content-addressed file, with
 separate retrieval evidence. A bad prior version is quarantined before recovery;
 it is not silently erased or accepted as valid.
+
+## PDF candidate and publication path
+
+`download/pdf_downloader.py:pdf_candidates()` constructs the following order,
+removing repeated URL strings while retaining the first occurrence:
+
+```text
+Work raw JSON
+  |-- content_urls.pdf                         # OpenAlex archive candidate
+  |-- best_oa_location.pdf_url
+  |-- primary_location.pdf_url
+  `-- locations[i].pdf_url where is_oa is True # original list order
+       |
+       v
+PDFDownloader.download(work, paper_dir)
+  |-- per-paper asyncio lock + download concurrency semaphore
+  |-- read download_manifest.json
+  |     `-- malformed manifest -> fail without overwriting its contents
+  |-- refresh disabled and valid cached version available? -> REUSED
+  |-- no manifest versions, valid original.pdf available? --> REUSED (no provenance)
+  |-- no candidates? -------------------------------------> PDF_NOT_AVAILABLE
+  |-- reserve one in-memory download_count slot for this work
+  |
+  `-- for each candidate, until one succeeds
+        |-- validate scheme, OA indication and configured license allowlist
+        |-- .downloads/<url_sha256>.part + matching receipt
+        |-- bounded transfer attempts -> _stream()
+        |-- validate_pdf(): signature, opening, encryption, pages and SHA-256
+        |-- publish pdf_versions/<content_sha256>.pdf
+        |-- create original.pdf only if absent
+        |-- append retrieval and attempt evidence to download_manifest.json
+        `-- remove transfer receipt; return DOWNLOADED
+```
+
+The legacy `original.pdf` reuse branch also requires refresh to be disabled.
+A reused manifest version must have a source URL hash still present in the
+current candidate list. Validation checks both readable PDF structure and the
+recorded content hash. Cache reuse precedes the per-work network counter and
+does not spend a new content reservation. The counter increments once for a work
+needing network processing, even if every candidate is subsequently filtered;
+it does not count each URL or HTTP retry.
+
+Ordinary publisher/repository candidates explicitly marked `is_oa=False` are
+skipped. Unknown OA status is not equivalent to that explicit false value.
+The archive candidate has separate authentication and budget checks; its license
+is copied from `best_oa_location` and marked as unverified for the archived
+version. The downloader requests supplied PDF URLs; it does not discover links
+by fetching landing-page HTML.
+
+An already stored file with the expected content-addressed name is validated
+before deduplication. Corrupt bytes are preserved under a `.corrupt.*.bin` name
+before validated replacement bytes take that path. A corrupt `original.pdf`
+is preserved with a warning; a valid version remains available separately.
+Different successful retrievals can share one hash-addressed file and still
+have separate manifest entries.
+
+Both successful retrieval and exhausted-candidate paths append attempt evidence
+to the manifest. Early returns, such as an invalid manifest, cache reuse, or no
+candidates, do not run that append step. The surrounding pipeline writes the
+returned result to `download_report.json`, records the download job, and either
+registers the PDF artifact or records an error and possible retry.
+
+When all candidates fail, the aggregate reason uses this priority:
+
+```text
+RATE_LIMITED > DOWNLOAD_FAILED > INVALID_PDF > ENCRYPTED_PDF
+            > ACCESS_RESTRICTED > LICENSE_RESTRICTED > PDF_NOT_AVAILABLE
+```
+
+The returned result is retryable if any attempt was retryable **or** the aggregate
+status is `RATE_LIMITED`. In particular, an archive content-cap rejection stops
+that candidate's local retry loop, but the aggregate `RATE_LIMITED` result can
+still create a pipeline retry. Repeated retries cannot replenish a lifetime
+content cap. Inspect the individual attempt reasons when several URLs failed
+for different causes.
+
+## Interrupted transfer decisions
+
+Each URL has a partial file and JSON receipt. `_stream()` resumes only when both
+exist and the receipt has a validator. Strong ETag is preferred; Last-Modified
+is the fallback. A weak ETag alone is not a sufficient resume validator.
+
+```text
+part + receipt + validator? -- no --> ordinary GET; write from byte zero
+  |
+  yes
+  v
+offset = current .part size
+GET with Range: bytes=<offset>- and If-Range: <validator>
+  |
+  +--> 206, matching range; no observed validator change -> append
+  +--> 200, server ignored range -----------------------> truncate and restart
+  +--> 416 or invalid range/changed validator ----------> discard receipt;
+  |                                                      bounded retry starts over
+  +--> 429 / 5xx / transport failure --------------------> retain partial evidence;
+  |                                                      apply retry policy
+  `--> valid completed stream -> flush/fsync -> validate PDF -> publish
+```
+
+| Transfer check | Implementation behavior |
+| --- | --- |
+| Redirect handling | At most six request-loop iterations; require Location and HTTP(S); reject HTTPS-to-HTTP downgrade |
+| Authorization | Recompute headers for each hop; attach Bearer only to HTTPS `content.openalex.org`; never forward it to an ordinary publisher host |
+| Content accounting | Reserve cumulative count and cost before every archive GET, including retried or redirected archive requests |
+| HTTP 401 / 403 / 451 | `ACCESS_RESTRICTED`, no retry for that attempt sequence |
+| HTTP 429 / 5xx | Retryable; honor Retry-After within the configured wait bound |
+| HTML, XHTML, JSON or plain-text Content-Type | Reject as `INVALID_PDF` before publication |
+| HTTP 206 | Require a parseable Content-Range whose start equals the local offset; reject an observed changed validator |
+| Declared size | Check Content-Length and Content-Range total against `max_file_bytes` before copying |
+| Streamed size | Enforce the same cap while writing chunks |
+| Length mismatch | Identity-encoded Content-Length or declared total mismatch is a retryable failure |
+| Invalid completed PDF | Keep rejected bytes as `.part`; do not promote them to a published PDF |
+
+The transfer receipt retains a validator and sanitized original and final URLs.
+Completed attempt details are stored in the download result and manifest.
+The receipt supports download resumption; it is separate from
+the successful-retrieval manifest and from a crawl-page receipt. A work's latest
+download status also differs from its retained corpus status: a previously
+successful work keeps that success when a later download attempt fails.
 
 ## Actual live validation
 
