@@ -2,7 +2,7 @@
 
 기록 범위: **2026-10-29 최초 구현·후속 기능 보강, 2026-10-30 개발 기록 정리·GitHub 게시 준비**. 사용자에게 표시하는 날짜와 시각은 Asia/Seoul(KST)을 기준으로 한다. 원본 JSON의 ISO 시각은 UTC로 보존되어 있으므로 둘을 구분한다.
 
-이 문서는 구현 과정의 결정, 실행한 검사, 남은 제약을 재현할 수 있도록 정리한 기록이다. 2026-10-30에는 이미 저장된 코드·문서·실행 증거를 읽어 작성했으며, 이 기록 작성을 위해 OpenAlex를 새로 조회하거나 OPV 수집을 재개하지 않았다. 자격증명 파일의 내용도 읽지 않았다. **GitHub push 완료를 증명하는 문서는 아니다.** 실제 원격 게시 결과는 성공 응답과 게시된 commit을 확인한 뒤 별도로 기록한다.
+이 문서는 구현 과정의 결정, 실행한 검사, 남은 제약을 재현할 수 있도록 정리한 기록이다. 2026-10-30에는 이미 저장된 코드·문서·실행 증거를 읽어 작성했으며, 이 기록 작성을 위해 OpenAlex를 새로 조회하거나 OPV 수집을 재개하지 않았다. 자격증명 파일의 내용도 읽지 않았다. 이후 GitHub 최초 push가 성공했고 로컬·원격 commit 일치를 확인했다. 게시 결과는 이 문서의 10절에 기록한다.
 
 빠른 실행은 [README](../README.md), 전체 흐름은 [구성도](diagrams/pipeline-overview.svg), 최초 실행 결과는 [최초 검증 기록](VALIDATION.md), 후속 GROBID/OCR 실행 결과는 [후속 검증 기록](ENHANCED_VALIDATION.md), 요구사항별 테스트 대응은 [테스트 매트릭스](TEST_MATRIX.md)를 참고한다.
 
@@ -223,7 +223,7 @@ OPENALEX_RUN_OCR=1 .venv/bin/python -m pytest -q tests/test_live_ocr.py
 
 코드·설정·잠금·테스트·운영 스크립트·문서는 저장소에 포함할 대상이다. 원본 corpus, API 응답, PDF, DB, 실행 로그, OCR 입력/파생물, 내려받은 모델, 빌드한 서비스, 가상환경과 자격증명은 로컬에 남긴다. `.gitignore`는 `data/`, `logs/`, `.venv/`, `.env`, 캐시·빌드 출력을 제외한다.
 
-2026-10-30 게시 준비 대상은 비공개 GitHub 저장소 `jongsu-king/openalex-corpus-harvester`로 계획했다. 이 단계에서는 계정·권한·원격 저장소·commit·push 결과를 각각 확인해야 하며, 계획된 이름만으로 게시 완료를 표시하지 않는다. README의 설치 안내와 예제 설정에는 특정 사용자의 자격증명이나 로컬 모델·corpus가 함께 배포된다는 가정을 넣지 않는다.
+2026-10-30 비공개 GitHub 저장소 `jongsu-king/openalex-corpus-harvester`를 생성하고 코드·설정·테스트·문서·그림을 게시했다. 계정 연결, 저장소 공개 범위, push 성공 응답, 로컬·원격 commit 일치와 원격 문서 존재를 확인했다. README의 설치 안내와 예제 설정에는 특정 사용자의 자격증명이나 로컬 모델·corpus가 함께 배포된다는 가정을 넣지 않는다.
 
 아래 경로는 **로컬 작업 폴더의 증거 위치**이며 GitHub에 함께 올리는 파일 링크가 아니다. 공개 저장소에서 없는 파일로 이동하는 링크를 만들지 않기 위해 코드 형식으로만 표기한다.
 
@@ -256,4 +256,20 @@ OPENALEX_RUN_OCR=1 .venv/bin/python -m pytest -q tests/test_live_ocr.py
 7. **유료 보관 콘텐츠와 PostgreSQL은 별도 범위다.** OpenAlex 보호 콘텐츠는 예산·인증·후보 처리의 모의 테스트만 수행했고 실제 유료 다운로드는 하지 않았다. PostgreSQL backend는 구현하지 않았다.
 8. **업데이트 완전성에는 소스·계정 제약이 있다.** 갱신일 필터 권한이 없을 때 출판일 재검색과 ID 비교로 모든 과거 메타데이터 변경·병합·삭제를 포착할 수 없다. 전체 데이터 확보는 공식 Snapshot 경로를 검토해야 한다.
 
-2026-10-30 문서화 단계의 완료 범위는 위 구현·검증·미완료 상태를 소스 저장소에서 읽을 수 있게 정리한 것이다. 원격 저장소 생성·commit·push의 성공 여부, 이후 전체 OPV 수집 완료, 추가 테스트 결과는 각각 확인 가능한 새 근거와 함께 후속 이력으로 기록한다.
+## 10. 2026-10-30 GitHub 최초 게시
+
+| 항목 | 확인한 결과 |
+|---|---|
+| 저장소 | [jongsu-king/openalex-corpus-harvester](https://github.com/jongsu-king/openalex-corpus-harvester) |
+| 공개 범위 | `PRIVATE` — 비공개 |
+| 기본 브랜치 | `main`, 로컬에서 `origin/main` 추적 |
+| 최초 게시 commit | [`ca870a24afb45d3765a00bef709f75209118dec8`](https://github.com/jongsu-king/openalex-corpus-harvester/commit/ca870a24afb45d3765a00bef709f75209118dec8) |
+| 최초 게시 범위 | 75개 파일, 소스·설정·잠금·테스트·문서·SVG 포함 |
+| 원격 검증 | `git push -u origin main` 성공; `git ls-remote`의 `refs/heads/main`과 로컬 HEAD 일치; GitHub API에서 아키텍처 문서 존재 확인 |
+| 그림 검증 | 편집 가능한 SVG 개요도 1개와 Mermaid 상세 도표 5개 렌더링 확인 |
+| 게시 전 검사 | pytest 130 passed / 5 skipped, Ruff, sdist·wheel 빌드, 내부 문서 링크, Git 공백 검사 통과 |
+| 제외 확인 | `.env`, 원문 PDF·수집 JSON·SQLite, 로컬 모델·서비스·가상환경·로그 제외. 후보 파일에서 실제 키·개인 절대 경로·큰 바이너리 없음 |
+
+최초 commit은 당시 완성된 작업 폴더의 스냅샷이다. 이전 구현 과정을 과거 Git commit으로 재작성하지 않았으며, 10월 29일의 실행 이력은 보존된 증거와 이 문서로 구분했다. 이 절을 추가한 후속 문서 commit은 최초 push를 확인한 뒤 작성했다.
+
+GitHub 게시 완료는 OPV 전체 수집 완료와 다르다. 82,363건 후보 중 저장된 범위와 키·예산 제한, PARTIAL 유지 사유는 위 기록대로 남아 있다. 이후 수집이나 추가 검증은 새 실행 근거와 함께 이력을 추가한다.
