@@ -62,7 +62,9 @@ filter syntax when an equivalent scoped search parameter exists.
 
 | Setting | Actual API field | Meaning |
 | --- | --- | --- |
-| `query` | `search` | OpenAlex's broad text/keyword search |
+| `query` with `scope: all` | `search` | OpenAlex's broad text/keyword search |
+| `query` with another `scope` | `search.<scope>` | `title`, `title_and_abstract`, or `title_abstract_keywords` |
+| `exact: true` | `.exact` suffix on the selected search parameter | Exact rather than stemmed query behavior |
 | `title` | `search.title` | Title text search |
 | `abstract` | `abstract.search` filter | Abstract text search |
 | `has_pdf` | `has_content.pdf` filter | PDF exists in the OpenAlex content archive |

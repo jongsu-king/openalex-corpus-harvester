@@ -1,90 +1,102 @@
-# OPV 문헌 후보 검색과 재개
+# OPV search scope and resumable collection
 
-검색일: **2026-10-29, Asia/Seoul**. 이 작업에서 OPV는 **organic photovoltaics / organic solar cells**, 즉 유기 태양광으로 해석했습니다. 같은 약어를 쓰는 경구용 소아마비 백신을 검색 대상으로 삼지 않습니다.
+The discovery run described here took place on **2026-10-29, Asia/Seoul**. OPV means **organic photovoltaics / organic solar cells** in this collection, not oral polio vaccine. The counts and API behavior below are observations from that run. For collection progress after that date, read `data/opv/collection_report.json`.
 
-## 수집 범위
+## What the search includes
 
-OpenAlex의 **제목·초록·색인된 키워드**를 대상으로 영어 표기와 문맥을 조합한 후보 검색입니다. 연도·언어·OA·PDF 보유 여부·문헌 유형을 제한하지 않았습니다. 따라서 논문 외에도 리뷰, 학회자료, 학위논문, 책의 장, 데이터셋 등 OpenAlex Work 객체가 포함될 수 있습니다. 원본은 유형과 함께 보존합니다.
+The search targets OpenAlex **titles, abstracts, and indexed keywords**, combining English terms with photovoltaic or solar-cell context. It applies no filters for year, language, open-access status, PDF availability, or work type. Results can therefore include reviews, conference material, theses, book chapters, datasets, and other OpenAlex Work types as well as journal articles. Each source record retains its type.
 
-최종 검색은 `config/opv.yaml`의 `search.query`, `scope: title_abstract_keywords`, `exact: true`에 저장했습니다. 다음 표현을 합칩니다.
+The final query is stored in `config/opv.yaml` as `search.query`, with `scope: title_abstract_keywords` and `exact: true`. It combines:
 
-- organic과 photovoltaic/photovoltaics/solar cell(s)의 조합
-- polymer solar cell(s), polymer photovoltaic(s)
-- plastic solar cell(s), plastic photovoltaic(s)
-- OPV/OPVs/organic PV와 solar/photovoltaic(s) 문맥
+- `organic` with photovoltaic/photovoltaics or solar cell/solar cells.
+- Polymer solar cell(s) and polymer photovoltaic(s).
+- Plastic solar cell(s) and plastic photovoltaic(s).
+- OPV, OPVs, or organic PV with solar or photovoltaic(s) context.
 
-이것은 **검색 조건에 맞는 후보 문헌 전체를 열거하기 위한 정의**입니다. 전 세계의 모든 관련 논문이 OpenAlex에 존재하거나 이 문자열/키워드와 일치한다는 보장은 없습니다. 다른 언어로만 표기된 문헌, 초록·키워드가 없는 기록, 특정 재료명만 쓰는 논문 등을 놓칠 수 있습니다. 반대로 organic-inorganic hybrid/perovskite 관련 문헌도 포함될 수 있습니다. 이를 관련성 검증을 마친 OPV 논문 목록이라고 표시하지 않습니다.
+This defines a set of search candidates to enumerate. It does not establish that every relevant paper is indexed by OpenAlex or uses those terms. Records written only in other languages, records without abstracts or keywords, and papers named only for particular materials may be missed. Organic–inorganic hybrid and perovskite papers may also match. Relevance review is a separate step.
 
-현재 첫페이지 합집합의 제목에서 `perovskite`가 있는 기록 3개를 검토 플래그로 표시했습니다. 키워드 플래그는 문자열이 원문 제목에 있다는 근거일 뿐, 해당 논문을 자동 제외하거나 내용 평가를 한 결과가 아닙니다. 다른 기록 역시 관련성이 검증되었다고 간주하지 않습니다.
+In the first-page discovery sample, three titles containing `perovskite` were flagged for review. Those flags record a string found in the title; they neither exclude the work nor establish what the paper is about. The remaining records were not treated as relevance-validated OPV literature.
 
-## 실제 API 결과
+## Discovery results recorded on 2026-10-29
 
-| 검색 정의 | API가 보고한 전체 일치 수 | 보존한 첫페이지 |
+| Search definition | Total matches reported by the API | Records retained from the first page |
 |---|---:|---:|
 | `"organic photovoltaic*"` | 16,482 | 100 |
 | `"organic solar cell*"` | 25,780 | 100 |
 | `"polymer solar cell*"` | 9,558 | 100 |
 | `"plastic solar cell*"` | 333 | 100 |
-| OPV/OPVs와 photovoltaic/solar-cell 문맥 | 6,301 | 100 |
-| 핵심 표현 합집합 `core_union` | 62,586 | 100 |
-| organic+PV의 넓은 합집합 `broad_union` | 82,110 | 100 |
-| 최종 보완 합집합 `expanded_union` | **82,363** | 100 |
+| OPV/OPVs with photovoltaic/solar-cell context | 6,301 | 100 |
+| Core expressions, `core_union` | 62,586 | 100 |
+| Broader organic + PV terms, `broad_union` | 82,110 | 100 |
+| Final expanded query, `expanded_union` | **82,363** | 100 |
 
-8개 첫페이지의 800개 출현에서 **고유 Work ID 608개**를 확인하고 **중복 출현 192개**를 식별했습니다. 검색별 전체 수는 서로 겹치므로 합산하지 않습니다. 단일 wildcard 검색과 명시적 단수/복수 Boolean 검색도 정확히 같은 문법이 아니므로, 개별 총합으로 최종 합집합 크기를 추정하지 않았습니다. 82,363은 최종 검색 하나에 대해 API가 직접 보고한 수입니다.
+The eight first pages contained 800 record occurrences, representing **608 unique Work IDs** and **192 duplicate occurrences**. The searches overlap, so their reported totals must not be added. The individual wildcard searches also differ syntactically from the explicit singular/plural Boolean query. The final total of 82,363 came directly from the API response to `expanded_union`; it was not estimated from the other counts.
 
-최종 검색은 100개/페이지 기준 **약 824페이지**입니다. 이는 조회 시점의 추정치이며 진행 중 데이터가 바뀔 수 있습니다. **첫페이지 조사 시에는 API 키가 없어 다음 cursor를 따라가지 않았습니다.** 위 82,363개가 이미 다운로드되거나 메타데이터로 모두 저장되었다는 뜻이 아닙니다. 실제 수집 진행률은 `data/opv/collection_report.json`의 `unique_collected_for_query`와 `reported_matches`를 확인하세요.
+At 100 records per page, the final query implied about **824 pages** at the time. The discovery run had no API key and **did not follow the next cursor**. It retained 100 records for the final query, while the 608 unique records came from the union of all eight first-page samples. Neither figure means that all 82,363 matches had been collected. OpenAlex data can change during a later crawl; the report fields `unique_collected_for_query` and `reported_matches` describe that crawl's progress.
 
-발견 작업에는 거부된 쿼리 진단을 포함해 **10회 요청, 보수적 예약액 $0.0100**을 사용했습니다. HTTP 400 두 건은 예약액에 남기며, 실제 응답이 청구하지 않았다고 추정해 예산을 돌려주지 않았습니다. 이전 일반 검증 요청의 $0.0001은 별도입니다. OpenAlex 보관 PDF/TEI는 내려받지 않았습니다.
+Discovery used **10 requests**, including rejected-query diagnostics, and reserved a conservative **$0.0100** in the local budget ledger. Two HTTP 400 responses remained charged against that reservation; the ledger did not assume they were free and refund the budget. The $0.0001 reservation for an earlier general validation request was separate. No OpenAlex-hosted PDF or TEI content was downloaded during discovery.
 
-## 실제 API와 문서 차이
+### Query syntax observed in that run
 
-공식 문서는 scoped exact 검색, Boolean, 후행 wildcard를 설명합니다. 실제 API는 단독 `"organic photovoltaic*"` 검색은 허용했지만, Boolean 안의 `"solar cell*"` 문구를 HTTP 400으로 거부했습니다. 응답을 `data/opv_discovery/errors/opv_context_rejection.json`에 보존하고, 합집합 쿼리에서는 **wildcard 대신 단수·복수를 직접 나열**했습니다. 작동하지 않은 쿼리를 성공으로 표시하지 않았습니다. [공식 검색 문서](https://help.openalex.org/api/searching/)
+The [OpenAlex search documentation](https://help.openalex.org/api/searching/) describes scoped exact search, Boolean expressions, and trailing wildcards. In the recorded requests, the API accepted standalone `"organic photovoltaic*"` but rejected a Boolean query containing `"solar cell*"` with HTTP 400. The response is preserved in `data/opv_discovery/errors/opv_context_rejection.json`.
 
-## 수집 실행
+The working union query therefore lists singular and plural forms explicitly instead of using wildcards. The rejected query is retained as a failed attempt, not counted as a successful search. This is a record of the API behavior observed on 2026-10-29, not a fresh check of the service.
 
-기본 출력은 기존 테스트 논문 2편과 분리된 **`data/opv`**입니다. 기본 동작은 메타데이터 목록 수집이며, 이미 보존한 최종 첫페이지는 해시·검색식 확인 후 재사용합니다. PDF와 파싱은 명시적 옵션으로만 켭니다.
+## Collect and resume
+
+The harvester writes to **`data/opv`**, separate from the two existing test papers. By default it collects metadata only. It verifies the saved final-query first page against its hash and query before reusing it as a seed. PDF downloading and parsing require explicit options.
+
+Run these commands from the application directory (`openalex_corpus/`):
 
 ```bash
-# 첫페이지 저장 후 키가 없으면 PAUSED_API_KEY_REQUIRED로 종료
+# Save/reuse the first page; pause with PAUSED_API_KEY_REQUIRED if no key is available.
 .venv/bin/python scripts/harvest_opv.py --all
 
-# 프로젝트 .env에 OPENALEX_API_KEY를 저장한 뒤 명시적으로 로드
+# Explicitly load OPENALEX_API_KEY after adding it to the project's .env file.
 .venv/bin/python scripts/harvest_opv.py --env-file .env --all
 
-# 한 번에 10,000개까지만 처리하고 다음 실행에서 계속
+# Process at most 10,000 works in this run; resume on the next invocation.
 .venv/bin/python scripts/harvest_opv.py --env-file .env --max-works 10000
 
-# 명시적으로 지정한 로컬 예산으로 실행(예: 사용자 승인한 한도)
+# Choose explicit local budget caps for this run.
 .venv/bin/python scripts/harvest_opv.py --env-file .env --all \
   --daily-budget-usd 0.05 --daily-request-budget 1000
 
-# 목록 확인 및 내보내기
+# Inspect and export the collected records.
 .venv/bin/openalex-corpus --config config/opv.yaml stats
 .venv/bin/openalex-corpus --config config/opv.yaml export --format jsonl
 .venv/bin/openalex-corpus --config config/opv.yaml export --format parquet
 ```
 
-`.env`는 셸 코드로 실행하지 않습니다. `python-dotenv`의 `dotenv_values`로 요청한 파일의 `OPENALEX_API_KEY`만 읽고 환경변수 확장도 끕니다. UTF-8 BOM을 허용하며 빈 값·대표적인 placeholder는 거부합니다. 키 값은 결과·로그에 출력하지 않습니다. `--env-file`을 생략하면 해당 파일을 자동으로 읽지 않습니다.
+The `.env` file is parsed as data, never executed as shell code. The harvester uses `python-dotenv`'s `dotenv_values` to read only `OPENALEX_API_KEY` from the explicitly requested file, with environment-variable interpolation disabled. It accepts a UTF-8 BOM and rejects empty values and common placeholders. The key is not printed in results or logs. Without `--env-file`, that file is not loaded automatically.
 
-`--all`은 이번 실행의 문헌 수 제한만 해제합니다. **일일 금액·요청 횟수·서버 제한·인증·재시도 제한을 해제하지 않습니다.** 기본 일일 메타데이터 cap은 기존 설정과 같은 $0.05/1,000요청이고, 보관 콘텐츠 cap은 0회/$0입니다. 이 예산으로 최종 검색 전체를 하루에 끝낸다고 약속하지 않습니다. 예산 소진 시 체크포인트와 재개 시각을 기록하고 멈춥니다. `--daily-budget-usd`/`--daily-request-budget`으로 명시적으로 다른 cap을 선택할 수 있지만, 이 기능은 유료 크레딧 구매나 계정 요금제를 변경하지 않습니다.
+`--all` removes only the per-run work-count limit. Daily dollar and request caps, server limits, authentication requirements, and retry limits still apply. The default metadata budget is $0.05 and 1,000 requests per day; the OpenAlex-hosted content budget is 0 downloads and $0. These caps do not imply that the full query can finish in one day. When a budget is exhausted, the harvester writes its checkpoint and resume time, then stops. `--daily-budget-usd` and `--daily-request-budget` change local caps; they do not buy credits or change an account plan.
 
-OpenAlex는 첫 cursor 이후 무료 API 키를 요구합니다. 이 프로그램은 키가 없을 때 날짜를 쪼개거나 페이지 제한을 우회하여 같은 결과를 긁지 않습니다. [인증](https://help.openalex.org/api/authentication/) · [페이지 순회](https://help.openalex.org/api/paging/)
+The discovery run encountered OpenAlex's requirement for a free API key beyond the first cursor. The harvester pauses when it needs a key rather than splitting dates or changing pagination to work around that requirement. See the upstream [authentication](https://help.openalex.org/api/authentication/) and [paging](https://help.openalex.org/api/paging/) documentation when preparing a new run.
 
-`--fresh`는 같은 검색을 처음부터 다시 시작하며 이전 원본은 유지합니다. 기본 재실행은 기존 cursor/페이지 offset을 이어갑니다. `COMPLETE_QUERY_MATCHES`는 해당 검색이 끝 cursor까지 도달하고 보고 수와 고유 ID 수가 일치한 경우입니다. 데이터 변경으로 수가 다르면 `COMPLETED_WITH_COUNT_MISMATCH_REVIEW`를 기록합니다. 모든 경우 `all_world_literature_complete=false`를 유지합니다.
+Ordinary reruns continue from the saved cursor and within-page offset. `--fresh` starts the same query again from the beginning while retaining previously stored raw records.
 
-PDF 수집은 필요할 때 `--download-pdf`, 구조 추출은 `--parse-markdown`을 추가합니다. 대량 메타데이터 목록 완성과 모든 PDF 확보는 서로 다른 작업이며, 유료/접근 제한 PDF는 우회하지 않습니다. 스크립트 전체에서 하나의 downloader를 재사용하므로 `download.max_downloads` cap이 청크마다 초기화되지 않습니다.
+## Completion states and optional PDF processing
 
-요청한 PDF·파싱 작업에 실패·재시도·미완료가 남으면 메타데이터 cursor가 끝나도 전체 상태는 `QUERY_COMPLETE_PROCESSING_INCOMPLETE`이고 종료코드는 2입니다. `metadata_status`와 `query_exhausted`는 목록의 완료 여부를 별도로 보존하고, `requested_processing`에는 해당 검색의 처리 상태별 수와 확보 불가 PDF 수가 기록됩니다. 완료 보고서를 재사용해도 현재 데이터베이스 통계·무결성을 다시 검사하며, 무결성 실패는 `FAILED_DATABASE_INTEGRITY`와 종료코드 2로 보고합니다.
+`COMPLETE_QUERY_MATCHES` means that the query reached its final cursor and the number of unique collected IDs matched the reported count. If the counts differ, for example because the source data changed during collection, the result is `COMPLETED_WITH_COUNT_MISMATCH_REVIEW`. Every report retains `all_world_literature_complete=false`: exhausting a query is a narrower claim than collecting all relevant literature.
 
-`pdf_unavailable_works`는 실제 `PDF_NOT_AVAILABLE`만 셉니다. 손상된 PDF, 다운로드 실패, 접근 제한, 콘텐츠 한도로 중단된 건은 `download_error_counts`에 원인을 남기고 처리가 미완료인 것으로 보고합니다.
+Add `--download-pdf` to request PDF retrieval and `--parse-markdown` to request structured extraction. Completing the metadata list and obtaining every PDF are separate tasks. The downloader does not bypass payment or access restrictions. The script reuses one downloader throughout the run so that the `download.max_downloads` cap is not reset at each chunk.
 
-## 보존 파일과 테스트
+If requested PDF or parsing work still has failures, retries, or unfinished items, reaching the final metadata cursor produces `QUERY_COMPLETE_PROCESSING_INCOMPLETE` and exit code 2. The report keeps the metadata outcome in `metadata_status` and `query_exhausted`; `requested_processing` records processing-state counts and the number of unavailable PDFs for that query.
 
-- `config/opv_searches.yaml`: 조사한 모든 검색과 선택된 검색의 정의.
-- `data/opv_discovery/pages/*.json`: 전체 원본 첫페이지와 `.receipt.json`의 요청·해시·rate 헤더.
-- `data/opv_discovery/summary.json`: 검색별 총수, 첫페이지 교집합, 고유 ID 수, 예산·완료 범위.
-- `data/opv_discovery/first_pages_unique_raw.jsonl`: 고유 608개 Work 원본 객체.
-- `data/opv_discovery/first_pages_index.json`: DOI·제목·연도·검색별 소속·제목 문자열 검토 플래그.
-- `data/opv/collection_report.json`: 현재 corpus 수집 상태. `collection_runs/`에는 실행별 보고서가 남습니다.
+Even when reusing a completed report, the harvester rechecks current database statistics and integrity. An integrity failure produces `FAILED_DATABASE_INTEGRITY` and exit code 2.
 
-`tests/test_opv.py`와 `tests/test_opv_download_budget.py`는 scope/exact 전송, BOM·비실행 credential 읽기, 청크 사이 cursor·다운로드 한도 유지, 페이지 중간 재개, 키 없는 seed 후 일시정지, seed 변조 거부, 실시간 전체 수 불일치, downstream 미완료·무결성 실패 보고를 검사합니다. 실제 API 첫페이지와 모의 cursor 테스트는 서로 다른 검증 범위입니다.
+`pdf_unavailable_works` counts only works actually marked `PDF_NOT_AVAILABLE`. A corrupt PDF, failed download, access restriction, or content-budget stop is recorded by cause in `download_error_counts` and leaves processing incomplete.
+
+## Retained evidence and tests
+
+| File or directory | Contents |
+|---|---|
+| `config/opv_searches.yaml` | All discovery search definitions and the selected query |
+| `data/opv_discovery/pages/*.json` | Complete raw first-page responses, with request details, hashes, and rate headers in adjacent `.receipt.json` files |
+| `data/opv_discovery/summary.json` | Per-query totals, first-page overlaps, unique-ID counts, budget use, and the scope actually completed |
+| `data/opv_discovery/first_pages_unique_raw.jsonl` | The 608 unique Work objects from the discovery sample |
+| `data/opv_discovery/first_pages_index.json` | DOI, title, year, query membership, and title-string review flags |
+| `data/opv/collection_report.json` | The latest corpus collection report; `collection_runs/` retains reports for individual runs |
+
+`tests/test_opv.py` and `tests/test_opv_download_budget.py` cover transmission of `scope` and `exact`, BOM handling and non-executing credential reads, cursor and download-cap continuity across chunks, resume within a page, seeding followed by a missing-key pause, rejection of altered seed data, changed API totals, and reporting of downstream or database-integrity failures. The saved live first-page responses establish what the API returned during discovery. Simulated cursor tests establish resume and completion behavior; they are not evidence of a completed live crawl.

@@ -1,81 +1,90 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
-<title id="title">OpenAlex Corpus Harvester — 원본 보존과 검증 흐름</title>
-<desc id="desc">검색 및 예산 제어, 원본 보존, 다중 파서 추출, 검증 및 저장의 네 단계. 모든 단계에서 출처와 불변 이력을 남기고 중단된 작업은 체크포인트에서 재개합니다. COMPLETE는 자동 검사 통과이며 원문 전체의 의미적 복원을 보장하지 않습니다.</desc>
-<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#60758a"/></marker></defs>
-<rect width="1600" height="1000" rx="24" fill="#f3f6fa"/>
-<g font-family="Apple SD Gothic Neo, Noto Sans KR, Malgun Gothic, sans-serif">
-<text x="60" y="65" font-size="19" fill="#25735e" font-weight="700">OPENALEX CORPUS HARVESTER</text>
-<text x="60" y="122" font-size="40" fill="#142d43" font-weight="700">원본을 보존하고, 결과의 근거를 추적한다</text>
-<text x="60" y="161" font-size="23" fill="#34475c" font-weight="400">검색 → 수집 → 추출 → 검증   ·   추측으로 빈칸을 채우지 않는 과학 문헌 파이프라인</text>
-<rect x="60" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<rect x="80" y="235" width="54" height="40" rx="10" fill="#e9f2fc" stroke="none"/>
-<text x="92" y="263" font-size="23" fill="#2064a5" font-weight="700">01</text>
-<text x="80" y="318" font-size="29" fill="#142d43" font-weight="700">목록 수집</text>
-<text x="80" y="361" font-size="21" fill="#34475c" font-weight="400">OpenAlex / SearchSpec</text>
-<text x="80" y="394" font-size="21" fill="#34475c" font-weight="400">범위·필터·검색식을 고정</text>
-<text x="80" y="427" font-size="21" fill="#34475c" font-weight="400">전송 전에 예산을 예약</text>
-<text x="80" y="460" font-size="21" fill="#34475c" font-weight="400">원본 응답·cursor·offset 저장</text>
-<text x="80" y="493" font-size="21" fill="#34475c" font-weight="400">Work ID로 중복 처리 방지</text>
-<rect x="74" y="523" width="312" height="32" rx="8" fill="#e9f2fc" stroke="none"/>
-<text x="83" y="545" font-size="17" fill="#2064a5" font-weight="600">인증·한도 도달 시 일시정지</text>
-<rect x="440" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<rect x="460" y="235" width="54" height="40" rx="10" fill="#e9f5ef" stroke="none"/>
-<text x="472" y="263" font-size="23" fill="#21755d" font-weight="700">02</text>
-<text x="460" y="318" font-size="29" fill="#142d43" font-weight="700">원본 보존</text>
-<text x="460" y="361" font-size="21" fill="#34475c" font-weight="400">JSON 전체 필드 + SHA-256</text>
-<text x="460" y="394" font-size="21" fill="#34475c" font-weight="400">첫 정상 original.pdf 보존</text>
-<text x="460" y="427" font-size="21" fill="#34475c" font-weight="400">다른 PDF는 버전으로 분리</text>
-<text x="460" y="460" font-size="21" fill="#34475c" font-weight="400">.part 검증 후 원자 이동</text>
-<text x="460" y="493" font-size="21" fill="#34475c" font-weight="400">출처·시각·license를 기록</text>
-<rect x="454" y="523" width="312" height="32" rx="8" fill="#e9f5ef" stroke="none"/>
-<text x="463" y="545" font-size="17" fill="#21755d" font-weight="600">원본과 파생 결과를 분리</text>
-<rect x="820" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<rect x="840" y="235" width="54" height="40" rx="10" fill="#fff4df" stroke="none"/>
-<text x="852" y="263" font-size="23" fill="#886221" font-weight="700">03</text>
-<text x="840" y="318" font-size="29" fill="#142d43" font-weight="700">독립 추출</text>
-<text x="840" y="361" font-size="21" fill="#34475c" font-weight="400">Docling — 문서 구조 후보</text>
-<text x="840" y="394" font-size="21" fill="#34475c" font-weight="400">PyMuPDF — 텍스트·좌표</text>
-<text x="840" y="427" font-size="21" fill="#34475c" font-weight="400">pdfplumber — 표 교차 검증</text>
-<text x="840" y="460" font-size="21" fill="#34475c" font-weight="400">GROBID — 학술 구조·TEI</text>
-<text x="840" y="493" font-size="21" fill="#34475c" font-weight="400">OCR — 필요한 스캔 페이지</text>
-<rect x="834" y="523" width="312" height="32" rx="8" fill="#fff4df" stroke="none"/>
-<text x="843" y="545" font-size="17" fill="#886221" font-weight="600">원시 후보와 불일치를 함께 보존</text>
-<rect x="1200" y="215" width="340" height="355" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<rect x="1220" y="235" width="54" height="40" rx="10" fill="#f2ebf8" stroke="none"/>
-<text x="1232" y="263" font-size="23" fill="#755294" font-weight="700">04</text>
-<text x="1220" y="318" font-size="29" fill="#142d43" font-weight="700">검증 · 저장</text>
-<text x="1220" y="361" font-size="21" fill="#34475c" font-weight="400">전체 페이지·파일 해시 확인</text>
-<text x="1220" y="394" font-size="21" fill="#34475c" font-weight="400">누락·불일치·결측 이유 기록</text>
-<text x="1220" y="427" font-size="21" fill="#34475c" font-weight="400">SQLite + 불변 extraction run</text>
-<text x="1220" y="460" font-size="21" fill="#34475c" font-weight="400">Markdown / JSON / 표·그림</text>
-<text x="1220" y="493" font-size="21" fill="#34475c" font-weight="400">검토가 남으면 PARTIAL 유지</text>
-<rect x="1214" y="523" width="312" height="32" rx="8" fill="#f2ebf8" stroke="none"/>
-<text x="1223" y="545" font-size="17" fill="#755294" font-weight="600">자동 검사와 의미적 정확성을 구분</text>
-<path d="M406 396 L432 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M786 396 L812 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M1166 396 L1192 396" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<rect x="60" y="610" width="1480" height="94" rx="20" fill="#153c52" stroke="none"/>
-<text x="85" y="648" font-size="23" fill="#a9e2d3" font-weight="700">모든 단계의 공통 원칙</text>
-<text x="85" y="683" font-size="24" fill="#ffffff" font-weight="400">source · missing_reason · retrieval_status · validation_status  /  원본 이력 유지  /  실패를 숨기지 않음</text>
-<path d="M230 576 L230 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M610 576 L610 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M990 576 L990 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M1370 576 L1370 603" fill="none" stroke="#60758a" stroke-width="3" marker-end="url(#arrow)"/>
-<rect x="60" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<text x="82" y="786" font-size="25" fill="#21755d" font-weight="700">자동 검사 통과</text>
-<text x="82" y="824" font-size="20" fill="#34475c" font-weight="400">COMPLETE / COMPLETE_WITH_WARNINGS</text>
-<text x="82" y="855" font-size="20" fill="#34475c" font-weight="400">정의된 페이지·파일·품질 검사 결과</text>
-<text x="82" y="886" font-size="20" fill="#34475c" font-weight="400">원문 의미 전체의 복원 인증은 아님</text>
-<rect x="565" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<text x="587" y="786" font-size="25" fill="#886221" font-weight="700">검토할 근거가 남음</text>
-<text x="587" y="824" font-size="20" fill="#34475c" font-weight="400">PARTIAL / FAILED / PDF_UNAVAILABLE</text>
-<text x="587" y="855" font-size="20" fill="#34475c" font-weight="400">수식·표·OCR·다운로드 원인을 분리</text>
-<text x="587" y="886" font-size="20" fill="#34475c" font-weight="400">메타데이터만 수집한 문헌도 구분</text>
-<rect x="1070" y="747" width="470" height="172" rx="20" fill="#ffffff" stroke="#dce4ed"/>
-<text x="1092" y="786" font-size="25" fill="#2064a5" font-weight="700">중단 이후에도 재개</text>
-<text x="1092" y="824" font-size="20" fill="#34475c" font-weight="400">cursor + offset / bounded retry</text>
-<text x="1092" y="855" font-size="20" fill="#34475c" font-weight="400">파일 승격과 DB commit 사이를 복구</text>
-<text x="1092" y="886" font-size="20" fill="#34475c" font-weight="400">이전 정상 추출을 실패로 덮어쓰지 않음</text>
-<text x="60" y="966" font-size="21" fill="#34475c" font-weight="400">구현·예외·상태 전이의 상세 근거: docs/ARCHITECTURE.md  ·  그림 재생성: python scripts/render_architecture.py</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+<title id="title">OpenAlex Corpus Harvester: module and storage map</title>
+<desc id="desc">Pipeline coordinates HTTPX clients and a spawned parser worker. Request receipts, budget reservations, immutable paper artifacts, and SQLite records support checkpoint resume and extraction recovery. Solid arrows show data exchange; dashed arrows show persistence.</desc>
+<defs><pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#1b2936" stroke-width="0.5"/></pattern><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#79b8ff"/></marker></defs>
+<rect width="1680" height="1120" fill="#0d141c"/>
+<rect width="1680" height="1120" fill="url(#grid)"/>
+<g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+<text xml:space="preserve" x="40" y="58" font-size="32" fill="#d1d9e0" font-weight="600">openalex_corpus / execution map</text>
+<text xml:space="preserve" x="40" y="96" font-size="20" fill="#91a4b7" font-weight="400">HTTP clients  |  asyncio coordinator  |  spawn worker  |  durable state</text>
+<rect x="40" y="135" width="1600" height="105" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M40 183 H1640" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="60" y="166" font-size="19" fill="#79b8ff" font-weight="600">cli.py</text>
+<text xml:space="preserve" x="62" y="218" font-size="23" fill="#7ee7b4" font-weight="400">$ openalex-corpus harvest ...  -&gt;  SearchSpec.params()  -&gt;  Pipeline.harvest(spec)</text>
+<path d="M820 240 L820 292" fill="none" stroke="#79b8ff" stroke-width="2" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="838" y="276" font-size="16" fill="#91a4b7" font-weight="400">bounded batches</text>
+<rect x="40" y="300" width="460" height="400" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M40 348 H500" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="60" y="331" font-size="19" fill="#79b8ff" font-weight="600">api/client.py + download/</text>
+<text xml:space="preserve" x="62" y="384" font-size="21" fill="#7ee7b4" font-weight="400">OpenAlexClient.get_page()</text>
+<text xml:space="preserve" x="62" y="420" font-size="19" fill="#d1d9e0" font-weight="400">  reserve_metadata(cost)</text>
+<text xml:space="preserve" x="62" y="453" font-size="19" fill="#d1d9e0" font-weight="400">  _throttle()</text>
+<text xml:space="preserve" x="62" y="486" font-size="19" fill="#d1d9e0" font-weight="400">  GET /works?cursor=...</text>
+<text xml:space="preserve" x="62" y="519" font-size="19" fill="#d1d9e0" font-weight="400">  observe_headers(...)</text>
+<path d="M62 546 L478 546" fill="none" stroke="#79b8ff" stroke-width="2"/>
+<text xml:space="preserve" x="62" y="585" font-size="21" fill="#7ee7b4" font-weight="400">PDFDownloader.download()</text>
+<text xml:space="preserve" x="62" y="624" font-size="19" fill="#d1d9e0" font-weight="400">  stream -&gt; validate -&gt; hash</text>
+<text xml:space="preserve" x="62" y="660" font-size="19" fill="#d1d9e0" font-weight="400">  .part -&gt; pdf_versions/&lt;sha&gt;</text>
+<rect x="540" y="300" width="560" height="400" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M540 348 H1100" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="560" y="331" font-size="19" fill="#79b8ff" font-weight="600">pipeline.py :: Pipeline</text>
+<text xml:space="preserve" x="565" y="384" font-size="22" fill="#7ee7b4" font-weight="400">ingest(raw)</text>
+<text xml:space="preserve" x="565" y="413" font-size="18" fill="#91a4b7" font-weight="400">  raw payload + normalized metadata</text>
+<text xml:space="preserve" x="565" y="461" font-size="22" fill="#7ee7b4" font-weight="400">process_work(raw)</text>
+<text xml:space="preserve" x="565" y="490" font-size="18" fill="#91a4b7" font-weight="400">  download -&gt; parse(work_id, pdf)</text>
+<text xml:space="preserve" x="565" y="538" font-size="22" fill="#7ee7b4" font-weight="400">check_extraction(result)</text>
+<text xml:space="preserve" x="565" y="567" font-size="18" fill="#91a4b7" font-weight="400">  page coverage / files / warnings</text>
+<text xml:space="preserve" x="565" y="615" font-size="22" fill="#7ee7b4" font-weight="400">commit extraction run</text>
+<text xml:space="preserve" x="565" y="644" font-size="18" fill="#91a4b7" font-weight="400">  rename -&gt; record_extraction()</text>
+<text xml:space="preserve" x="565" y="675" font-size="18" fill="#91a4b7" font-weight="400">  _publish() -&gt; current.json</text>
+<rect x="1140" y="300" width="500" height="400" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M1140 348 H1640" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="1160" y="331" font-size="19" fill="#79b8ff" font-weight="600">spawn :: _parser_worker()</text>
+<text xml:space="preserve" x="1162" y="384" font-size="21" fill="#7ee7b4" font-weight="400">parse_pdf(pdf, out, options)</text>
+<text xml:space="preserve" x="1162" y="425" font-size="18" fill="#d1d9e0" font-weight="400">1  PyMuPDF     raw pages / geometry</text>
+<text xml:space="preserve" x="1162" y="460" font-size="18" fill="#d1d9e0" font-weight="400">2  OCRmyPDF*   selected-page text</text>
+<text xml:space="preserve" x="1162" y="495" font-size="18" fill="#d1d9e0" font-weight="400">3  pdfplumber  table / text checks</text>
+<text xml:space="preserve" x="1162" y="530" font-size="18" fill="#d1d9e0" font-weight="400">4  Docling     layout / structure</text>
+<text xml:space="preserve" x="1162" y="565" font-size="18" fill="#d1d9e0" font-weight="400">5  GROBID*     references / TEI</text>
+<path d="M1162 591 L1618 591" fill="none" stroke="#79b8ff" stroke-width="2"/>
+<text xml:space="preserve" x="1162" y="628" font-size="19" fill="#91a4b7" font-weight="400">workers=1   timeout=600s</text>
+<text xml:space="preserve" x="1162" y="665" font-size="19" fill="#91a4b7" font-weight="400">worker RSS budget: 3072 MiB</text>
+<path d="M502 385 L537 385" fill="none" stroke="#79b8ff" stroke-width="2" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="506" y="369" font-size="12" fill="#91a4b7" font-weight="400">JSON</text>
+<path d="M538 593 L502 593" fill="none" stroke="#79b8ff" stroke-width="2" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="506" y="577" font-size="12" fill="#91a4b7" font-weight="400">call</text>
+<path d="M1102 473 L1137 473" fill="none" stroke="#79b8ff" stroke-width="2" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="1107" y="456" font-size="12" fill="#91a4b7" font-weight="400">PDF</text>
+<path d="M1138 550 L1102 550" fill="none" stroke="#79b8ff" stroke-width="2" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="1104" y="534" font-size="12" fill="#91a4b7" font-weight="400">dict</text>
+<path d="M270 702 L270 798" fill="none" stroke="#79b8ff" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="285" y="753" font-size="15" fill="#91a4b7" font-weight="400">receipts / reservations</text>
+<path d="M820 702 L820 798" fill="none" stroke="#79b8ff" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="835" y="753" font-size="15" fill="#91a4b7" font-weight="400">transactions / selection</text>
+<path d="M1390 702 L1390 798" fill="none" stroke="#79b8ff" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<text xml:space="preserve" x="1405" y="753" font-size="15" fill="#91a4b7" font-weight="400">parser output to staging</text>
+<rect x="40" y="800" width="460" height="220" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M40 848 H500" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="60" y="831" font-size="19" fill="#79b8ff" font-weight="600">disk :: request state</text>
+<text xml:space="preserve" x="62" y="886" font-size="19" fill="#d1d9e0" font-weight="400">crawls/&lt;run&gt;/pages/*.json</text>
+<text xml:space="preserve" x="62" y="921" font-size="19" fill="#d1d9e0" font-weight="400">*.receipt.json</text>
+<text xml:space="preserve" x="62" y="956" font-size="19" fill="#d1d9e0" font-weight="400">state/network_budget.json</text>
+<text xml:space="preserve" x="62" y="994" font-size="16" fill="#91a4b7" font-weight="400">checkpoint cursor + offset: SQLite</text>
+<rect x="540" y="800" width="560" height="220" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M540 848 H1100" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="560" y="831" font-size="19" fill="#79b8ff" font-weight="600">SQLite + publication pointer</text>
+<text xml:space="preserve" x="565" y="886" font-size="19" fill="#d1d9e0" font-weight="400">works / metadata_revisions</text>
+<text xml:space="preserve" x="565" y="921" font-size="19" fill="#d1d9e0" font-weight="400">crawl_checkpoints / retry_queue</text>
+<text xml:space="preserve" x="565" y="956" font-size="19" fill="#d1d9e0" font-weight="400">extraction_runs / validation_results</text>
+<text xml:space="preserve" x="565" y="994" font-size="18" fill="#7ee7b4" font-weight="400">current.json -&gt; extractions/&lt;run&gt;</text>
+<rect x="1140" y="800" width="500" height="220" rx="3" fill="#101b26" stroke="#344657"/>
+<path d="M1140 848 H1640" stroke="#344657" stroke-width="1"/>
+<text xml:space="preserve" x="1160" y="831" font-size="19" fill="#79b8ff" font-weight="600">disk :: paper artifacts</text>
+<text xml:space="preserve" x="1162" y="886" font-size="19" fill="#d1d9e0" font-weight="400">metadata_history/&lt;sha&gt;.json</text>
+<text xml:space="preserve" x="1162" y="921" font-size="19" fill="#d1d9e0" font-weight="400">original.pdf / pdf_versions/</text>
+<text xml:space="preserve" x="1162" y="956" font-size="19" fill="#d1d9e0" font-weight="400">extractions/&lt;run&gt;/manifest.json</text>
+<text xml:space="preserve" x="1162" y="994" font-size="18" fill="#91a4b7" font-weight="400">paper.md / tables / figures / ...</text>
+<text xml:space="preserve" x="40" y="1061" font-size="18" fill="#91a4b7" font-weight="400">solid: calls / returned data     dashed: persistence     * configured only</text>
+<text xml:space="preserve" x="40" y="1094" font-size="17" fill="#91a4b7" font-weight="400">Workers write staging output; pipeline.py commits runs. GROBID runs as a separate local service.</text>
 </g>
 </svg>
