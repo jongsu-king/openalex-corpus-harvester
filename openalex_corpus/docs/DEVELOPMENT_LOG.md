@@ -2,7 +2,7 @@
 
 This record covers the initial implementation and optional-engine work on **October 29, 2026**, followed by documentation, release checks, and the first GitHub publication on **October 30**. Dates and times below use **Asia/Seoul (KST)**; timestamps inside raw JSON evidence remain in UTC.
 
-The October 30 documentation work used existing source files and run evidence. It did not restart OPV collection or query OpenAlex. The first publication is recorded in section 10.
+The October 30 documentation work used existing source files and run evidence. It did not restart OPV collection or query OpenAlex. The first publication is recorded in section 10 and the public release in section 13.
 
 For operation, see the [README](../README.md). Supporting documents include the
 [architecture](ARCHITECTURE.md), [pipeline walkthrough](PIPELINE_WALKTHROUGH.md),
@@ -323,3 +323,19 @@ and Git whitespace checks passed. Local evidence is saved in
 
 The application and its tests were not changed; the 130-pass regression result
 above remains the prior measured run.
+
+## 13. Public release — November 5, 2026
+
+| Item | Recorded result |
+|---|---|
+| Visibility | Changed from `PRIVATE` to `PUBLIC` at commit [`80f9218`](https://github.com/jongsu-king/openalex-corpus-harvester/commit/80f9218) |
+| Pre-release review | Pattern searches of the tree and all commits found no credentials, personal absolute paths, or private hosts; GitHub's activity log showed no force pushes. A dedicated secret scanner was not run |
+| Regression checks | 130 passed, 5 skipped, on Python 3.11.18 and macOS arm64 with only the `dev` extra installed |
+| Other checks | Ruff, `uv lock --check`, sdist/wheel builds, `CITATION.cff` schema validation, and internal Markdown links passed |
+| Access checks | The repository page, REST API, raw README, and `git clone` worked without authentication |
+| Not re-run | Live OpenAlex, Docling, GROBID, and OCR integrations; their recorded results above remain the prior measured runs |
+
+The release commit changed documentation, package metadata, and a configuration
+comment; it did not change application code or tests. The Zenodo badge was removed
+because no DOI had been issued. Release `v0.1.0` predates the Zenodo integration,
+so a DOI requires enabling that integration and publishing a later release.
