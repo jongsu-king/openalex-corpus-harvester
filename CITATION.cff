@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "OpenAlex Corpus Harvester"
+message: "If you use this software, please cite it using these metadata."
+type: software
+authors:
+  - name: "jongsu-king"
+    website: "https://github.com/jongsu-king"
+repository-code: "https://github.com/jongsu-king/openalex-corpus-harvester"
+abstract: >-
+  A Python CLI for collecting OpenAlex records and extracting scientific PDFs
+  into Markdown, structured data, and a local SQLite corpus. It retains raw
+  responses and PDFs alongside parser output, checksums, and validation
+  results for auditability.
+keywords:
+  - openalex
+  - bibliometrics
+  - scholarly-metadata
+  - corpus
+  - pdf-extraction
+  - grobid
+version: 0.1.0
+# DOI: filled in automatically by Zenodo on the first GitHub release once the
+# Zenodo-GitHub integration is enabled for this repository. Replace the line
+# below with: doi: 10.5281/zenodo.XXXXXXX
+# doi: 10.5281/zenodo.0000000

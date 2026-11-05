@@ -1,5 +1,7 @@
 # OpenAlex Corpus Harvester
 
+[![DOI](https://zenodo.org/badge/1439308336.svg)](https://zenodo.org/badge/latestdoi/1439308336)
+
 A Python CLI for collecting OpenAlex records and extracting scientific PDFs into Markdown, structured data, and a local SQLite corpus. It keeps raw responses and PDFs alongside parser output, checksums, and validation results.
 
 The application lives in [`openalex_corpus/`](openalex_corpus/).
@@ -91,3 +93,17 @@ PDF parsing needs local model files. GROBID requires Java 21; OCR requires Tesse
 The October 2026 runs processed two real papers, covering 14 pages, and exercised the installed GROBID and OCR engines. The default test suite passed **130 tests**, with five live integrations skipped by default and exercised separately.
 
 The OPV query reported **82,363 candidate records** on 2026-10-29. Discovery saved 608 distinct records across overlapping first pages; the final query's corpus contained 100 records when collection paused for an API key. These are different counts. The [OPV inventory notes](openalex_corpus/docs/OPV_SCOPE.md) define the search and its limits.
+
+
+## Citation
+
+If you use this software, please cite it. Machine-readable metadata is in
+[`CITATION.cff`](CITATION.cff) (GitHub renders a "Cite this repository" button
+from it).
+
+To mint a resolvable **DOI**: sign in to [Zenodo](https://zenodo.org) with
+GitHub, enable this repository under Zenodo's GitHub settings, then publish a
+GitHub release (e.g. `v0.1.0`). Zenodo archives the release and issues the DOI;
+the badge above then resolves and the `doi:` line in `CITATION.cff` can be
+filled in. A DOI is issued by a registration agency (Zenodo uses DataCite) and
+cannot be self-assigned.
