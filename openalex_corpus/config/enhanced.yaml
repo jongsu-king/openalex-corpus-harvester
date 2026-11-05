@@ -1,4 +1,4 @@
-# GROBID and selective OCR, installed and verified in this workspace.
+# Enables GROBID and selective OCR. See docs/GROBID_SETUP.md and docs/OCR_SETUP.md.
 # Start the service first: .venv/bin/python scripts/grobid_service.py start
 data_dir: data
 log_dir: logs

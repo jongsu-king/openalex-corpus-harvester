@@ -1,6 +1,7 @@
 # OpenAlex Corpus Harvester
 
-[![DOI](https://zenodo.org/badge/1439308336.svg)](https://zenodo.org/badge/latestdoi/1439308336)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](openalex_corpus/pyproject.toml)
 
 A Python CLI for collecting OpenAlex records and extracting scientific PDFs into Markdown, structured data, and a local SQLite corpus. It keeps raw responses and PDFs alongside parser output, checksums, and validation results.
 
@@ -83,6 +84,9 @@ PDF parsing needs local model files. GROBID requires Java 21; OCR requires Tesse
 | [Pipeline walkthrough](openalex_corpus/docs/PIPELINE_WALKTHROUGH.md) | One command traced through requests, batches, parser workers, publication, and resume offsets |
 | [Database and storage contracts](openalex_corpus/docs/DATABASE.md) | Keys, relationships, transaction boundaries, artifact hashes, and inspection queries |
 | [API and download behavior](openalex_corpus/docs/API.md) | Request accounting, HTTP failures, candidate selection, range transfers, and refresh |
+| [Parsers](openalex_corpus/docs/PARSERS.md) | Extraction order, retained parser evidence, and limitations |
+| [GROBID setup](openalex_corpus/docs/GROBID_SETUP.md) | Building and running the local GROBID service |
+| [OCR setup](openalex_corpus/docs/OCR_SETUP.md) | OCRmyPDF, Tesseract, and Ghostscript requirements and tested versions |
 | [Development log](openalex_corpus/docs/DEVELOPMENT_LOG.md) | Implementation decisions, regressions, validation runs, and open issues |
 | [Parser integration results](openalex_corpus/docs/ENHANCED_VALIDATION.md) | GROBID, OCR, and the retained PARTIAL result |
 | [OPV inventory](openalex_corpus/docs/OPV_SCOPE.md) | Query definition, saved coverage, and resume commands |
@@ -94,19 +98,15 @@ The October 2026 runs processed two real papers, covering 14 pages, and exercise
 
 The OPV query reported **82,363 candidate records** on 2026-10-29. Discovery saved 608 distinct records across overlapping first pages; the final query's corpus contained 100 records when collection paused for an API key. These are different counts. The [OPV inventory notes](openalex_corpus/docs/OPV_SCOPE.md) define the search and its limits.
 
+## Responsible use
+
+This repository contains no papers or collected data. The downloader requests only explicitly supplied PDF URLs; it does not bypass access controls, scrape HTML, handle CAPTCHAs, or guess publisher endpoints. OpenAlex's paid archived content is disabled by default. A freely downloadable PDF can still carry license restrictions, so check them before sharing a corpus, and follow the OpenAlex and publisher terms that apply to your use.
 
 ## Citation
 
 If you use this software, please cite it. Machine-readable metadata is in
-[`CITATION.cff`](CITATION.cff) (GitHub renders a "Cite this repository" button
-from it).
-
-To mint a resolvable **DOI**: sign in to [Zenodo](https://zenodo.org) with
-GitHub, enable this repository under Zenodo's GitHub settings, then publish a
-GitHub release (e.g. `v0.1.0`). Zenodo archives the release and issues the DOI;
-the badge above then resolves and the `doi:` line in `CITATION.cff` can be
-filled in. A DOI is issued by a registration agency (Zenodo uses DataCite) and
-cannot be self-assigned.
+[`CITATION.cff`](CITATION.cff), and GitHub shows a "Cite this repository" button
+based on it.
 
 ## License
 

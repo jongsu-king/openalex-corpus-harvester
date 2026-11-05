@@ -3,7 +3,9 @@ title: "OpenAlex Corpus Harvester"
 message: "If you use this software, please cite it using these metadata."
 type: software
 authors:
-  - name: "jongsu-king"
+  - given-names: "Jongsu"
+    family-names: "Lim"
+    alias: "jongsu-king"
     website: "https://github.com/jongsu-king"
 repository-code: "https://github.com/jongsu-king/openalex-corpus-harvester"
 abstract: >-
@@ -19,8 +21,8 @@ keywords:
   - pdf-extraction
   - grobid
 version: 0.1.0
+date-released: "2026-11-05"
 license: MIT
-# DOI: filled in automatically by Zenodo on the first GitHub release once the
-# Zenodo-GitHub integration is enabled for this repository. Replace the line
-# below with: doi: 10.5281/zenodo.XXXXXXX
-# doi: 10.5281/zenodo.0000000
+# Zenodo issues a DOI for GitHub releases published after its integration is
+# enabled for this repository. It does not edit this file, so add the DOI here:
+# doi: 10.5281/zenodo.XXXXXXX
