@@ -1,5 +1,6 @@
 # OpenAlex Corpus Harvester
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23970939.svg)](https://doi.org/10.5281/zenodo.23970939)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](openalex_corpus/pyproject.toml)
 
@@ -104,9 +105,12 @@ This repository contains no papers or collected data. The downloader requests on
 
 ## Citation
 
-If you use this software, please cite it. Machine-readable metadata is in
-[`CITATION.cff`](CITATION.cff), and GitHub shows a "Cite this repository" button
-based on it.
+If you use this software, please cite it. The DOI
+[10.5281/zenodo.23970939](https://doi.org/10.5281/zenodo.23970939) covers all
+versions and resolves to the latest release; to cite v0.1.1 specifically, use
+[10.5281/zenodo.23970940](https://doi.org/10.5281/zenodo.23970940).
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff), and GitHub shows
+a "Cite this repository" button based on it.
 
 ## License
 

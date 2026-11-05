@@ -337,5 +337,12 @@ above remains the prior measured run.
 
 The release commit changed documentation, package metadata, and a configuration
 comment; it did not change application code or tests. The Zenodo badge was removed
-because no DOI had been issued. Release `v0.1.0` predates the Zenodo integration,
-so a DOI requires enabling that integration and publishing a later release.
+at that commit because no DOI had been issued.
+
+The Zenodo integration was then enabled, and release
+[`v0.1.1`](https://github.com/jongsu-king/openalex-corpus-harvester/releases/tag/v0.1.1)
+was archived as [10.5281/zenodo.23970940](https://doi.org/10.5281/zenodo.23970940).
+The concept DOI [10.5281/zenodo.23970939](https://doi.org/10.5281/zenodo.23970939)
+covers all versions. Release `v0.1.0` predates the integration and has no Zenodo
+record. That release's `CITATION.cff` contains no DOI because the DOI was issued
+after the tag was published; the file on `main` contains it.
