@@ -107,3 +107,7 @@ GitHub release (e.g. `v0.1.0`). Zenodo archives the release and issues the DOI;
 the badge above then resolves and the `doi:` line in `CITATION.cff` can be
 filled in. A DOI is issued by a registration agency (Zenodo uses DataCite) and
 cannot be self-assigned.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

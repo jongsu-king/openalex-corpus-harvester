@@ -19,6 +19,7 @@ keywords:
   - pdf-extraction
   - grobid
 version: 0.1.0
+license: MIT
 # DOI: filled in automatically by Zenodo on the first GitHub release once the
 # Zenodo-GitHub integration is enabled for this repository. Replace the line
 # below with: doi: 10.5281/zenodo.XXXXXXX
