@@ -20,7 +20,7 @@ keywords:
   - corpus
   - pdf-extraction
   - grobid
-version: 0.1.0
+version: 0.1.1
 date-released: "2026-11-05"
 license: MIT
 # Zenodo issues a DOI for GitHub releases published after its integration is
