@@ -48,8 +48,7 @@ Every [release](https://github.com/jongsu-king/openalex-corpus-harvester/release
 
 | System | File | Install |
 |---|---|---|
-| Windows 10/11 (64-bit) | `openalex-corpus-<version>-windows-x64-setup.exe` | Run it (no administrator rights); it adds `openalex-corpus` to your user PATH. Open a new terminal afterwards. |
-| Windows, no installation | `openalex-corpus-<version>-windows-x64-portable.zip` | Unzip and run `openalex-corpus\openalex-corpus.exe`. |
+| Windows 10/11 | the Linux `.deb` or `.tar.gz` inside [WSL2](https://learn.microsoft.com/windows/wsl/install) | The harvester relies on POSIX file semantics (directory fsync, atomic renames of open files), so on Windows it runs through WSL2. |
 | macOS, Apple silicon / Intel | `openalex-corpus-<version>-macos-arm64.tar.gz` / `…-macos-x86_64.tar.gz` | `tar -xzf …; xattr -dr com.apple.quarantine openalex-corpus; openalex-corpus/install.sh` |
 | Ubuntu 22.04+ / Debian 12+ | `openalex-corpus_<version>_amd64.deb` | `sudo apt install ./openalex-corpus_<version>_amd64.deb` |
 | Other Linux (x86-64, glibc 2.35+) | `openalex-corpus-<version>-linux-x86_64.tar.gz` | `tar -xzf …; openalex-corpus/install.sh` (puts the command in `~/.local/bin`) |
