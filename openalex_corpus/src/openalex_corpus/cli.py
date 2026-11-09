@@ -33,6 +33,9 @@ def main(
     data_dir: Annotated[Path | None, typer.Option("--data-dir")] = None,
 ):
     """Configuration paths are relative to their YAML project directory."""
+    if ctx.invoked_subcommand in ("version", "self-update"):
+        return  # neither needs a configuration or a data directory
+    _schedule_update_check()
     default = Path("config/config.yaml")
     settings = load_settings(config or (default if default.exists() else None))
     if data_dir:
@@ -423,3 +426,103 @@ def doctor(ctx: typer.Context):
 
 if __name__ == "__main__":
     app()
+
+
+def _schedule_update_check() -> None:
+    """Once a day, ask GitHub in the background whether a newer release exists.
+
+    When the command has finished: a standalone build in ``auto`` mode downloads the
+    release, verifies it against SHA256SUMS.txt and replaces itself after exit; any
+    other copy prints one line saying how to update. Never runs under tests or CI,
+    or with OPENALEX_CORPUS_NO_UPDATE=1.
+    """
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    try:
+        import atexit
+        import threading
+
+        from . import __version__
+
+        updater = _updater()
+        if not updater.due():
+            return
+        found: dict = {}
+
+        def run() -> None:
+            try:
+                found["release"] = updater.check()
+            except Exception:  # offline or rate-limited: try again tomorrow
+                pass
+
+        thread = threading.Thread(target=run, name="update-check", daemon=True)
+        thread.start()
+
+        def report() -> None:
+            thread.join(timeout=3)
+            release = found.get("release")
+            if release is None or not release.newer:
+                return
+            if updater.mode == "auto" and updater.can_install(release):
+                typer.echo(
+                    f"openalex-corpus {release.version} is available; downloading and verifying it…", err=True
+                )
+                try:
+                    updater.prepare(release)
+                    updater.apply_now(relaunch=False)
+                    typer.echo("verified; it replaces this copy now that the command has finished", err=True)
+                except Exception as exc:
+                    typer.echo(f"update not installed: {exc}", err=True)
+                return
+            how = (
+                "openalex-corpus self-update"
+                if updater.install.frozen
+                else updater.manual_instructions(release)
+            )
+            typer.echo(
+                f"openalex-corpus {release.version} is available (you have {__version__}); update with: {how}",
+                err=True,
+            )
+
+        atexit.register(report)
+    except Exception:  # an update check must never break a command
+        pass
+
+
+def _updater():
+    from . import __version__, selfupdate
+
+    return selfupdate.Updater(
+        selfupdate.App(
+            repo="jongsu-king/openalex-corpus-harvester",
+            name="openalex-corpus",
+            version=__version__,
+            env_prefix="OPENALEX_CORPUS",
+            pip_name="openalex-corpus",
+        )
+    )
+
+
+@app.command()
+def version():
+    """Print the version and how this copy was installed."""
+    from . import __version__
+
+    install = _updater().install
+    emit({"version": __version__, "install": install.kind, "can_self_update": install.can_apply})
+
+
+@app.command("self-update")
+def self_update(
+    check_only: Annotated[
+        bool, typer.Option("--check-only", help="only report whether a newer release exists")
+    ] = False,
+):
+    """Check GitHub for a newer release; a standalone build downloads it, verifies its
+    SHA-256 against the release's SHA256SUMS.txt and replaces itself after this command exits.
+    pip and source installs are told the command to run instead."""
+    from . import selfupdate
+
+    raise typer.Exit(
+        selfupdate.cli(_updater(), install=not check_only, out=lambda line: typer.echo(line, err=True))
+    )

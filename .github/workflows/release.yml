@@ -1,0 +1,131 @@
+# Standalone builds of the command-line tool (no Python needed) for Windows, macOS
+# (Apple silicon and Intel) and Linux, plus the wheel and sdist. Every build runs
+# `version` and `doctor`; the Windows installer and the .deb are test-installed.
+# A v* tag publishes everything with SHA256SUMS.txt (used by `openalex-corpus
+# self-update`); "Run workflow" builds without publishing.
+name: Release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  OPENALEX_CORPUS_NO_UPDATE: "1"
+defaults:
+  run:
+    working-directory: openalex_corpus
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, kind: windows }
+          - { os: macos-latest, kind: macos }     # Apple silicon
+          - { os: macos-15-intel, kind: macos }   # Intel
+          - { os: ubuntu-22.04, kind: linux }     # glibc 2.35
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install
+        shell: bash
+        run: python -m pip install --upgrade pip && python -m pip install ".[dev]" pyinstaller
+      - name: Version
+        shell: bash
+        run: |
+          V=$(python -c "import openalex_corpus; print(openalex_corpus.__version__)")
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF_NAME#v}" != "$V" ]]; then
+            echo "tag $GITHUB_REF_NAME does not match __version__ $V"; exit 1; fi
+      - name: Tests
+        shell: bash
+        run: python -m pytest -q
+      - name: Build
+        shell: bash
+        run: pyinstaller --noconfirm --distpath dist --workpath build packaging/openalex-corpus.spec
+      - name: Check the build
+        shell: bash
+        run: |
+          T=$(mktemp -d)
+          dist/openalex-corpus/openalex-corpus version
+          dist/openalex-corpus/openalex-corpus --data-dir "$T" doctor > "$T/doctor.json"
+          python -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['versions']['openalex-corpus'], d" "$T/doctor.json"
+      - name: Package (macOS, Linux)
+        if: matrix.kind != 'windows'
+        shell: bash
+        run: |
+          packaging/package_unix.sh "$VERSION"
+          mkdir -p /tmp/t && tar -C /tmp/t -xzf out/openalex-corpus-*.tar.gz
+          HOME=/tmp/home /tmp/t/openalex-corpus/install.sh
+          /tmp/home/.local/bin/openalex-corpus version
+      - name: Test the .deb (Linux)
+        if: matrix.kind == 'linux'
+        run: |
+          sudo apt-get install -y ./out/openalex-corpus_*_amd64.deb
+          openalex-corpus version
+          sudo apt-get remove -y openalex-corpus
+      - name: Package and test-install (Windows)
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          choco install innosetup --no-progress -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:VERSION" packaging\windows\installer.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path dist\openalex-corpus -DestinationPath "out\openalex-corpus-$env:VERSION-windows-x64-portable.zip"
+          $setup = Get-ChildItem out\openalex-corpus-*-windows-x64-setup.exe | Select-Object -First 1
+          $p = Start-Process $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/DIR=C:\oc-test' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { exit 1 }
+          & C:\oc-test\openalex-corpus.exe version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $path = (Get-ItemProperty HKCU:\Environment).Path
+          if ($path -notlike '*C:\oc-test*') { throw "installer did not add itself to PATH" }
+          $u = Start-Process C:\oc-test\unins000.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($u.ExitCode -ne 0) { exit 1 }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.os }}
+          if-no-files-found: error
+          path: openalex_corpus/out/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v8
+        with:
+          path: openalex_corpus/artifacts
+          merge-multiple: true
+      - name: Wheel and sdist
+        run: python -m pip install build && python -m build --outdir artifacts .
+      - name: Checksums and notes
+        run: |
+          python packaging/release_notes.py --dir artifacts --repo "$GITHUB_REPOSITORY" --tag "$GITHUB_REF_NAME" \
+            --name "openalex-corpus" --notes "docs/release-notes/${GITHUB_REF_NAME#v}.md" \
+            --no-update-section > notes.md
+          cat artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-preview
+          path: |
+            openalex_corpus/artifacts/SHA256SUMS.txt
+            openalex_corpus/notes.md
+      - name: Publish
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" artifacts/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" artifacts/* --title "openalex-corpus ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag
+          fi

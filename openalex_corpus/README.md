@@ -42,6 +42,32 @@ measured results.
 
 ## Installation
 
+### Standalone build (no Python needed)
+
+Every [release](https://github.com/jongsu-king/openalex-corpus-harvester/releases/latest) carries ready-to-run builds of the command-line tool:
+
+| System | File | Install |
+|---|---|---|
+| Windows 10/11 (64-bit) | `openalex-corpus-<version>-windows-x64-setup.exe` | Run it (no administrator rights); it adds `openalex-corpus` to your user PATH. Open a new terminal afterwards. |
+| Windows, no installation | `openalex-corpus-<version>-windows-x64-portable.zip` | Unzip and run `openalex-corpus\openalex-corpus.exe`. |
+| macOS, Apple silicon / Intel | `openalex-corpus-<version>-macos-arm64.tar.gz` / `…-macos-x86_64.tar.gz` | `tar -xzf …; xattr -dr com.apple.quarantine openalex-corpus; openalex-corpus/install.sh` |
+| Ubuntu 22.04+ / Debian 12+ | `openalex-corpus_<version>_amd64.deb` | `sudo apt install ./openalex-corpus_<version>_amd64.deb` |
+| Other Linux (x86-64, glibc 2.35+) | `openalex-corpus-<version>-linux-x86_64.tar.gz` | `tar -xzf …; openalex-corpus/install.sh` (puts the command in `~/.local/bin`) |
+| Any system with Python 3.11+ | `openalex_corpus-<version>-py3-none-any.whl` | `pip install openalex_corpus-<version>-py3-none-any.whl` |
+
+`SHA256SUMS.txt` on the same page lists every file's checksum. The standalone builds include the core
+dependencies but not the optional Docling/OCRmyPDF extras or the external GROBID, Java, Tesseract and
+Ghostscript tools; for those parsers use the source installation below.
+
+**Updates.** `openalex-corpus self-update` installs the latest release into a standalone build after
+verifying it against `SHA256SUMS.txt` (`--check-only` only reports). Once a day any command also checks in
+the background: a standalone build then installs a newer release after the command has finished, other
+installs print the command to run. Only the program name and version are sent; set
+`OPENALEX_CORPUS_NO_UPDATE=1` to turn the daily check off. `openalex-corpus version` shows how this copy was
+installed.
+
+### From source (all parsers)
+
 From the repository root:
 
 ```bash
