@@ -33,7 +33,9 @@ jobs:
           python-version: "3.11"
       - name: Install
         shell: bash
-        run: python -m pip install --upgrade pip && python -m pip install ".[dev]" pyinstaller
+        # --only-binary: on Intel Macs the newest cryptography (via pdfplumber) has no wheel,
+        # and a source build links a different OpenSSL than the one PyInstaller bundles.
+        run: python -m pip install --upgrade pip && python -m pip install --only-binary=cryptography ".[dev]" pyinstaller
       - name: Version
         shell: bash
         run: |
@@ -65,7 +67,8 @@ jobs:
       - name: Test the .deb (Linux)
         if: matrix.kind == 'linux'
         run: |
-          sudo apt-get install -y ./out/openalex-corpus_*_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ./out/openalex-corpus_*_amd64.deb
           openalex-corpus version
           sudo apt-get remove -y openalex-corpus
       - name: Package and test-install (Windows)

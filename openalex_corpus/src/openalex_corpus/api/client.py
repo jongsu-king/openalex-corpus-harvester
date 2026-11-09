@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import fcntl
 import json
 import os
+import sys
 import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -19,6 +19,31 @@ import httpx
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from .search import normalize_identifier
+
+if sys.platform == "win32":
+    import msvcrt
+
+    def _lock_exclusive(fd: int) -> None:
+        os.lseek(fd, 0, os.SEEK_SET)
+        while True:  # LK_LOCK gives up after ~10 s; keep waiting like flock does
+            try:
+                msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
+                return
+            except OSError:
+                time.sleep(0.1)
+
+    def _unlock(fd: int) -> None:
+        os.lseek(fd, 0, os.SEEK_SET)
+        msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+
+else:
+    import fcntl
+
+    def _lock_exclusive(fd: int) -> None:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+
+    def _unlock(fd: int) -> None:
+        fcntl.flock(fd, fcntl.LOCK_UN)
 
 
 class APIError(RuntimeError):
@@ -84,7 +109,7 @@ class BudgetJournal:
     @contextmanager
     def transaction(self) -> Iterator[dict[str, Any]]:
         with self.lock_path.open("a+b") as lock:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            _lock_exclusive(lock.fileno())
             try:
                 if self.path.exists():
                     try:
@@ -115,7 +140,7 @@ class BudgetJournal:
                     os.fsync(output.fileno())
                 os.replace(tmp, self.path)
             finally:
-                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+                _unlock(lock.fileno())
 
     def reserve_metadata(self, cost: float, request_limit: int, cost_limit: float) -> None:
         with self.transaction() as data:
