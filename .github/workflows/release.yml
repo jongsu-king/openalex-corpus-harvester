@@ -96,6 +96,7 @@ jobs:
           python packaging/release_notes.py --dir artifacts --repo "$GITHUB_REPOSITORY" --tag "$GITHUB_REF_NAME" \
             --name "openalex-corpus" --notes "docs/release-notes/${GITHUB_REF_NAME#v}.md" \
             --no-update-section > notes.md
+          python packaging/fix_notes.py notes.md
           cat artifacts/SHA256SUMS.txt
       - uses: actions/upload-artifact@v7
         with:
