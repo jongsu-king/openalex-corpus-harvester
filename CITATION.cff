@@ -20,7 +20,7 @@ keywords:
   - corpus
   - pdf-extraction
   - grobid
-version: "0.1.2"
+version: "0.1.3"
 date-released: "2026-11-09"
 license: MIT
 # Concept DOI: covers all versions and resolves to the latest release.
